@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Our Table 🌿</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --g:#3a8f6f;--gm:#5aac8a;--gl:#e8f6f0;--gd:#2c6e54;
+  --p:#f07a50;--pl:#fff1eb;
+  --gold:#d4940c;--goldl:#fef8e6;
+  --red:#c94040;--redl:#fdeaea;
+  --cream:#faf8f3;--w:#fff;
+  --t:#1c1c1e;--t2:#5a5a5f;--t3:#a0a0a8;
+  --bd:#e5e0d8;
+  --sh:0 2px 14px rgba(0,0,0,.07);
+  --shl:0 8px 36px rgba(0,0,0,.13);
+  --r:14px;--rl:22px;--rp:100px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--cream);color:var(--t);-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+/* ── LOADING / AUTH / ONBOARD SCREENS ── */
+.screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--g) 0%,var(--gd) 100%);z-index:200;padding:20px;}
+.screen-card{background:#fff;border-radius:24px;padding:32px 28px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);text-align:center;}
+.screen-logo{font-size:36px;margin-bottom:4px;}
+.screen-ttl{font-size:24px;font-weight:800;color:var(--t);margin-bottom:6px;letter-spacing:-.5px;}
+.screen-sub{font-size:14px;color:var(--t2);line-height:1.5;margin-bottom:24px;}
+.google-btn{width:100%;padding:13px 16px;border:1.5px solid var(--bd);border-radius:12px;background:#fff;cursor:pointer;font-size:15px;font-weight:600;color:var(--t);font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .15s;margin-bottom:10px;}
+.google-btn:hover{background:#f5f5f5;border-color:#ccc;}
+.google-ico{width:20px;height:20px;flex-shrink:0;}
+.spin-sm{width:20px;height:20px;border:2px solid var(--bd);border-top-color:var(--g);border-radius:50%;animation:sp .8s linear infinite;margin:0 auto 12px;}
+@keyframes sp{to{transform:rotate(360deg);}}
+.ob-tabs{display:flex;gap:4px;background:#f0ede8;border-radius:10px;padding:4px;margin-bottom:20px;}
+.ob-tab{flex:1;padding:8px;border:none;border-radius:8px;background:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--t2);font-family:inherit;transition:all .15s;}
+.ob-tab.on{background:#fff;color:var(--g);box-shadow:0 1px 4px rgba(0,0,0,.1);}
+.ob-inp{width:100%;padding:11px 13px;border:1.5px solid var(--bd);border-radius:10px;font-size:14px;font-family:inherit;color:var(--t);margin-bottom:10px;transition:border .15s;}
+.ob-inp:focus{outline:none;border-color:var(--g);}
+.code-display{background:var(--gl);border:2px solid var(--gm);border-radius:12px;padding:16px;margin:12px 0;text-align:center;}
+.code-val{font-size:34px;font-weight:900;letter-spacing:8px;color:var(--gd);font-family:monospace;}
+.code-hint{font-size:12px;color:var(--t2);margin-top:5px;}
+.ob-err{font-size:13px;color:var(--red);margin:6px 0;min-height:18px;}
+.btn-full{width:100%;padding:13px;border:none;border-radius:12px;background:var(--g);color:#fff;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:background .15s;}
+.btn-full:hover{background:var(--gd);}
+.btn-full:disabled{opacity:.5;cursor:default;}
+.sign-out-link{font-size:12px;color:var(--t3);cursor:pointer;margin-top:12px;display:inline-block;}
+.sign-out-link:hover{color:var(--t2);}
+
+/* ── HEADER ── */
+.hdr{background:var(--g);padding:0 18px;position:sticky;top:0;z-index:60;box-shadow:0 2px 16px rgba(42,110,84,.35);}
+.hdr-in{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:58px;}
+.logo{color:#fff;font-size:20px;font-weight:800;letter-spacing:-.4px;display:flex;align-items:center;gap:7px;}
+.logo-sub{font-weight:400;opacity:.6;font-size:13px;margin-left:2px;}
+.hdr-r{display:flex;gap:8px;align-items:center;}
+.hwk{font-size:12px;color:rgba(255,255,255,.75);background:rgba(255,255,255,.15);padding:4px 10px;border-radius:var(--rp);cursor:pointer;transition:background .15s;}
+.hwk:hover{background:rgba(255,255,255,.25);}
+.htog{display:flex;align-items:center;gap:6px;}
+.htog-lbl{font-size:12px;color:rgba(255,255,255,.85);white-space:nowrap;}
+.tog{position:relative;width:38px;height:22px;cursor:pointer;display:inline-block;flex-shrink:0;}
+.tog input{opacity:0;width:0;height:0;position:absolute;}
+.tbg{position:absolute;inset:0;background:rgba(255,255,255,.3);border-radius:11px;transition:background .2s;}
+.tog input:checked~.tbg{background:rgba(255,255,255,.9);}
+.tdt{position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s;pointer-events:none;z-index:1;box-shadow:0 1px 4px rgba(0,0,0,.2);}
+.tog input:checked~.tdt{transform:translateX(16px);background:var(--g);}
+.avatar{width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,.4);object-fit:cover;cursor:pointer;}
+.avatar-placeholder{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.3);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;cursor:pointer;flex-shrink:0;}
+
+/* ── HISTORY BANNER ── */
+.hist-banner{background:var(--goldl);border-bottom:2px solid var(--gold);padding:10px 18px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:58px;z-index:55;}
+.hist-banner-ttl{font-size:13px;font-weight:700;color:#7a4a0a;}
+.hist-back{font-size:12px;font-weight:700;color:#7a4a0a;background:none;border:1.5px solid var(--gold);border-radius:var(--rp);padding:5px 12px;cursor:pointer;font-family:inherit;}
+
+/* ── PORTION BAR ── */
+.portion-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+.portion-ctrl{display:flex;align-items:center;gap:8px;background:var(--gl);border:1px solid var(--gm);border-radius:var(--rp);padding:5px 10px;}
+.portion-lbl{font-size:12px;font-weight:600;color:var(--gd);}
+.portion-sel{font-size:12px;font-weight:700;color:var(--gd);background:none;border:none;cursor:pointer;padding:0 4px;font-family:inherit;}
+.portion-sel:hover{text-decoration:underline;}
+
+/* ── TABS ── */
+.dtabs{display:none;max-width:1100px;margin:0 auto;padding:22px 18px 0;gap:3px;}
+@media(min-width:720px){.dtabs{display:flex;}}
+.dtab{padding:10px 20px;border:1px solid var(--bd);border-bottom:none;border-radius:12px 12px 0 0;background:var(--cream);cursor:pointer;font-size:13px;color:var(--t2);font-family:inherit;font-weight:500;transition:all .15s;}
+.dtab.on{background:var(--w);color:var(--gd);font-weight:700;}
+.bnav{position:fixed;bottom:0;left:0;right:0;background:var(--w);border-top:1px solid var(--bd);display:flex;z-index:60;box-shadow:0 -3px 20px rgba(0,0,0,.07);}
+@media(min-width:720px){.bnav{display:none;}}
+.nb{flex:1;padding:8px 4px 13px;border:none;background:none;cursor:pointer;font-size:10px;font-weight:600;color:var(--t3);font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:2px;transition:color .15s;}
+.nb.on{color:var(--g);}
+.ni{font-size:22px;line-height:1;}
+
+/* ── VIEWS ── */
+.views{max-width:1100px;margin:0 auto;}
+.view{display:none;padding:16px 18px 100px;}
+.view.active{display:block;}
+@media(min-width:720px){.view{border:1px solid var(--bd);border-top:none;background:var(--w);border-radius:0 var(--r) var(--r) var(--r);min-height:400px;padding:22px 24px 40px;}}
+
+/* ── DAY PILLS ── */
+.dscroll{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:14px;}
+.dscroll::-webkit-scrollbar{display:none;}
+@media(min-width:720px){.dscroll{display:none;}}
+.dpill{flex-shrink:0;border:2px solid var(--bd);border-radius:var(--rp);background:var(--w);cursor:pointer;font-family:inherit;font-weight:600;font-size:13px;color:var(--t2);width:54px;display:flex;flex-direction:column;align-items:center;padding:7px 0 8px;transition:all .15s;}
+.dpill.on{background:var(--g);color:#fff;border-color:var(--g);}
+.dp-d{font-size:9px;text-transform:uppercase;letter-spacing:.05em;opacity:.7;}
+.dp-n{font-size:15px;font-weight:800;margin-top:1px;}
+.dp-dot{width:6px;height:6px;border-radius:50%;margin-top:4px;background:transparent;}
+.dpill.rl .dp-dot{background:var(--gm);}
+.dpill.rm .dp-dot{background:var(--gold);}
+.dpill.rs .dp-dot{background:var(--red);}
+#mob-day{display:block;}
+@media(min-width:720px){#mob-day{display:none;}}
+.dgrid{display:none;grid-template-columns:repeat(3,1fr);gap:14px;}
+@media(min-width:720px){.dgrid{display:grid;}}
+
+/* ── DAY CARD ── */
+.dc{background:var(--w);border:1px solid var(--bd);border-radius:var(--rl);overflow:hidden;box-shadow:var(--sh);}
+@media(min-width:720px){.dc:hover{box-shadow:var(--shl);transition:box-shadow .2s;}}
+.dch{padding:10px 16px;background:var(--gl);border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;}
+.dcd{font-size:13px;font-weight:800;color:var(--gd);}
+.dcdt{font-size:12px;color:var(--t3);}
+.dcb{padding:14px 16px;display:flex;flex-direction:column;gap:11px;}
+.mlbl{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin-bottom:2px;font-weight:600;}
+.mn{font-size:13px;font-weight:700;color:var(--t);}
+.ms{font-size:12px;color:var(--t2);line-height:1.45;}
+.mac{font-size:11px;color:var(--t3);margin-top:2px;}
+.rule{height:1px;background:var(--bd);}
+.din{border:1.5px solid var(--bd);border-radius:var(--r);padding:13px 14px;background:linear-gradient(145deg,#f5fdf9,#fefcf7);}
+.din-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:5px;}
+.din-name{font-size:15px;font-weight:800;color:var(--t);line-height:1.25;}
+.ftag{font-size:10px;padding:3px 9px;border-radius:var(--rp);font-weight:700;white-space:nowrap;flex-shrink:0;}
+.din-desc{font-size:12px;color:var(--t2);line-height:1.5;}
+.din-meta{font-size:11px;color:var(--t2);margin-top:5px;display:flex;gap:12px;flex-wrap:wrap;}
+.din-acts{display:flex;gap:6px;margin-top:11px;flex-wrap:wrap;}
+.ab{padding:6px 12px;border:1.5px solid var(--bd);border-radius:var(--rp);background:var(--w);cursor:pointer;font-size:11px;font-weight:700;color:var(--t2);font-family:inherit;transition:all .15s;}
+.ab:hover{border-color:var(--g);color:var(--g);}
+.ab.on{background:var(--gl);border-color:var(--gm);color:var(--gd);}
+.ab.fon{background:var(--goldl);border-color:var(--gold);color:var(--gold);}
+.rec{display:none;border-top:1px solid var(--bd);margin-top:11px;padding-top:11px;}
+.rec.open{display:block;}
+.rl{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin:8px 0 5px;font-weight:700;}
+.rl:first-child{margin-top:0;}
+.rec ul,.rec ol{padding-left:16px;}
+.rec li{font-size:12px;color:var(--t2);line-height:2;}
+.scaled-note{font-size:11px;color:var(--g);font-weight:600;margin-top:4px;font-style:italic;}
+.swaps{display:none;border-top:1px solid var(--bd);margin-top:11px;padding-top:11px;}
+.swaps.open{display:block;}
+.sw-ttl{font-size:11px;font-weight:700;color:var(--t2);margin-bottom:7px;}
+.sw-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--bd);border-radius:12px;margin-bottom:6px;background:var(--w);}
+.sw-item:last-child{margin-bottom:0;}
+.sw-l{flex:1;min-width:0;}
+.sw-n{font-size:12px;font-weight:700;color:var(--t);}
+.sw-d{font-size:11px;color:var(--t2);line-height:1.4;margin-top:1px;}
+.use-btn{padding:5px 13px;border:2px solid var(--g);color:var(--gd);border-radius:var(--rp);background:none;cursor:pointer;font-size:11px;font-weight:800;font-family:inherit;white-space:nowrap;flex-shrink:0;transition:all .15s;}
+.use-btn:hover{background:var(--gl);}
+.rat-row{display:flex;flex-direction:column;gap:5px;}
+.rat-lbl{font-size:11px;color:var(--t3);font-weight:600;}
+.rat{display:flex;gap:6px;}
+.rb{flex:1;padding:8px 4px;border:2px solid var(--bd);border-radius:10px;background:var(--w);cursor:pointer;font-size:12px;font-weight:700;color:var(--t2);font-family:inherit;transition:all .15s;}
+.rb.loved{background:var(--gl);color:var(--gd);border-color:var(--gm);}
+.rb.meh{background:var(--goldl);color:#7a4a0a;border-color:var(--gold);}
+.rb.skip{background:var(--redl);color:var(--red);border-color:#e8a0a0;}
+.nta{width:100%;font-size:13px;padding:9px 11px;border:1.5px solid var(--bd);border-radius:10px;color:var(--t);background:var(--w);font-family:inherit;resize:none;min-height:48px;line-height:1.5;}
+.nta:focus{outline:none;border-color:var(--g);}
+.phil{display:none;border-top:1px solid var(--bd);padding-top:11px;}
+.phil.open{display:block;}
+.pbadge{display:inline-flex;align-items:center;gap:5px;font-size:10px;background:#e6eeff;color:#3040b8;padding:3px 9px;border-radius:var(--rp);margin-bottom:9px;font-weight:700;}
+.tots{display:flex;gap:7px;}
+.tot{flex:1;text-align:center;padding:7px 4px;background:var(--gl);border-radius:10px;}
+.tv{font-size:14px;font-weight:800;color:var(--gd);display:block;}
+.tl{font-size:10px;color:var(--t3);}
+.surp{width:100%;padding:10px;border:2px dashed var(--p);color:var(--p);border-radius:12px;background:var(--pl);cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;transition:all .15s;}
+.surp:hover{background:#fce5d8;}
+
+/* ── GROCERY ── */
+.sec-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;flex-wrap:wrap;gap:8px;}
+.sec-ttl{font-size:22px;font-weight:800;color:var(--t);}
+.sec-sub{font-size:13px;color:var(--t3);margin-top:2px;}
+.g-prog{height:8px;background:var(--bd);border-radius:var(--rp);margin:10px 0 20px;overflow:hidden;}
+.g-prog-bar{height:100%;background:var(--g);border-radius:var(--rp);transition:width .4s ease;}
+.gcat{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t2);padding:12px 0 6px;border-bottom:1px solid var(--bd);margin-top:14px;}
+.grow{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--bd);}
+.gcb{width:19px;height:19px;cursor:pointer;accent-color:var(--g);flex-shrink:0;margin-top:2px;}
+.g-label{flex:1;}
+.g-name{font-size:14px;color:var(--t);}
+.g-name.done{text-decoration:line-through;color:var(--t3);}
+.g-ref{font-size:12px;color:var(--t3);font-style:italic;margin-left:4px;}
+.g-note{font-size:11px;color:var(--t3);display:block;margin-top:1px;}
+.g-pantry-badge{font-size:10px;color:var(--g);background:var(--gl);border-radius:4px;padding:1px 5px;margin-left:6px;font-weight:600;}
+.g-acts{display:flex;gap:8px;margin-bottom:4px;flex-wrap:wrap;}
+
+/* ── FAVORITES ── */
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;}
+.fcard{background:var(--w);border:1px solid var(--bd);border-radius:var(--r);padding:15px;box-shadow:var(--sh);}
+.fn{font-size:14px;font-weight:700;color:var(--t);margin-bottom:3px;}
+.fd{font-size:12px;color:var(--t2);line-height:1.4;}
+.fm{font-size:11px;color:var(--t3);margin-top:4px;}
+.fdel{margin-top:11px;font-size:11px;padding:4px 11px;border:1px solid var(--bd);color:var(--t3);background:none;border-radius:var(--rp);cursor:pointer;font-family:inherit;}
+.fdel:hover{background:var(--redl);color:var(--red);border-color:var(--red);}
+
+/* ── HISTORY ── */
+.hist-list{display:flex;flex-direction:column;gap:10px;}
+.hist-card{background:var(--w);border:1px solid var(--bd);border-radius:var(--r);padding:14px 16px;cursor:pointer;transition:all .15s;box-shadow:var(--sh);}
+.hist-card:hover{border-color:var(--gm);box-shadow:var(--shl);}
+.hist-card.current-wk{border-color:var(--g);background:var(--gl);}
+.hist-wk{font-size:14px;font-weight:700;color:var(--t);margin-bottom:6px;}
+.hist-dinners{display:flex;flex-wrap:wrap;gap:4px;}
+.hist-pill{font-size:10px;padding:2px 7px;border-radius:var(--rp);font-weight:600;}
+.hist-rating{font-size:11px;color:var(--t3);margin-top:6px;}
+
+/* ── PANTRY ── */
+.pantry-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-top:10px;}
+.pantry-item{display:flex;align-items:center;gap:9px;padding:9px 12px;border:1.5px solid var(--bd);border-radius:10px;cursor:pointer;transition:all .15s;background:var(--w);}
+.pantry-item.on{border-color:var(--gm);background:var(--gl);}
+.pantry-item input{accent-color:var(--g);width:16px;height:16px;flex-shrink:0;}
+.pantry-name{font-size:13px;color:var(--t);font-weight:500;}
+
+/* ── SETTINGS ── */
+.scard{background:var(--w);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;margin-bottom:16px;}
+.srow{padding:15px 18px;border-bottom:1px solid var(--bd);}
+.srow:last-child{border-bottom:none;}
+.slbl{font-size:13px;font-weight:700;color:var(--t);margin-bottom:6px;}
+.sdesc{font-size:12px;color:var(--t3);margin-top:4px;line-height:1.5;}
+.slink{display:inline-flex;align-items:center;gap:6px;background:var(--g);color:#fff;padding:10px 18px;border-radius:var(--rp);font-size:14px;font-weight:700;text-decoration:none;font-family:inherit;border:none;cursor:pointer;transition:background .15s;}
+.slink:hover{background:var(--gd);}
+.req-banner{background:linear-gradient(135deg,var(--g) 0%,var(--gd) 100%);border-radius:var(--rl);padding:22px 20px;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:14px;cursor:pointer;box-shadow:0 6px 28px rgba(42,110,84,.3);transition:all .2s;text-decoration:none;margin-bottom:16px;}
+.req-banner:hover{transform:translateY(-2px);}
+.rq-t{font-size:17px;font-weight:800;margin-bottom:4px;}
+.rq-s{font-size:12px;opacity:.8;line-height:1.5;}
+.rq-a{font-size:32px;}
+.version{font-size:12px;color:var(--t3);text-align:center;margin-top:16px;}
+.ghost{padding:7px 14px;border:1.5px solid var(--bd);border-radius:var(--rp);background:var(--w);cursor:pointer;font-size:13px;font-weight:600;color:var(--t2);font-family:inherit;transition:all .15s;}
+.ghost:hover{border-color:var(--g);color:var(--g);}
+
+/* ── MODALS ── */
+.moverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px);}
+@media(min-width:520px){.moverlay{align-items:center;}}
+.mbox{background:var(--w);border-radius:24px 24px 0 0;padding:22px 20px 36px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 -8px 40px rgba(0,0,0,.2);}
+@media(min-width:520px){.mbox{border-radius:24px;max-width:480px;padding:26px;}}
+.mttl{font-size:20px;font-weight:800;color:var(--t);margin-bottom:5px;}
+.msub{font-size:13px;color:var(--t2);margin-bottom:14px;line-height:1.5;}
+.mta{width:100%;font-size:11px;padding:10px 12px;border:1.5px solid var(--bd);border-radius:10px;min-height:150px;font-family:monospace;color:var(--t2);background:var(--cream);resize:none;line-height:1.6;}
+.mclose{width:100%;margin-top:10px;padding:11px;border:1.5px solid var(--bd);border-radius:var(--rp);background:none;cursor:pointer;font-size:14px;font-weight:600;color:var(--t2);font-family:inherit;}
+.mclose:hover{background:var(--cream);}
+.mconfirm{text-align:center;color:var(--g);font-size:13px;font-weight:700;margin-top:10px;display:none;}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:4rem 1rem;}
+.ei{font-size:52px;margin-bottom:12px;}
+.et{font-size:17px;font-weight:700;color:var(--t2);margin-bottom:5px;}
+.es{font-size:13px;color:var(--t3);}
+
+@media print{
+  .bnav,.hdr-r,.dtabs,.din-acts,.rat-row,.surp,.nta,.no-print{display:none!important;}
+  .rec{display:block!important;}.phil{display:block!important;}
+  .dgrid{grid-template-columns:repeat(2,1fr)!important;}
+  body{background:#fff;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING SCREEN -->
+<div id="screen-loading" class="screen">
+  <div class="screen-card">
+    <div class="screen-logo">🌿</div>
+    <div class="screen-ttl">Our Table</div>
+    <div class="spin-sm" style="margin-top:16px;"></div>
+    <div style="font-size:13px;color:var(--t3);">Loading your table…</div>
+    <div id="debug-panel" style="display:none;margin-top:16px;background:#fdeaea;border:1px solid #e8a0a0;border-radius:10px;padding:12px;text-align:left;">
+      <div style="font-size:12px;font-weight:700;color:#a32020;margin-bottom:4px;">⚠️ Error — please send this to Philip:</div>
+      <div id="debug-msg" style="font-size:11px;color:#7a1010;word-break:break-all;line-height:1.5;font-family:monospace;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH SCREEN -->
+<div id="screen-auth" class="screen" style="display:none;">
+  <div class="screen-card">
+    <div class="screen-logo">🌿</div>
+    <div class="screen-ttl">Our Table</div>
+    <div class="screen-sub">Your family's weekly meal hub — tap to get started</div>
+    <button class="google-btn" onclick="signInGoogle()">
+      <svg class="google-ico" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Sign in with Google
+    </button>
+    <div style="font-size:12px;color:var(--t3);margin-top:8px;">Your meals, your family, your table.</div>
+  </div>
+</div>
+
+<!-- ONBOARDING SCREEN -->
+<div id="screen-onboard" class="screen" style="display:none;">
+  <div class="screen-card">
+    <div class="screen-logo">🌿</div>
+    <div class="screen-ttl" id="ob-title">Welcome!</div>
+    <div class="screen-sub" id="ob-sub">Set up your family's table to get started.</div>
+    <div class="ob-tabs">
+      <button class="ob-tab on" onclick="obTab('create')">Create family</button>
+      <button class="ob-tab" onclick="obTab('join')">Join family</button>
+    </div>
+    <div id="ob-create">
+      <input id="ob-name" class="ob-inp" placeholder="Family name (e.g. The Eakers)" maxlength="40">
+      <div class="ob-err" id="ob-err-create"></div>
+      <button class="btn-full" onclick="createHousehold()">Create & get invite code</button>
+    </div>
+    <div id="ob-join" style="display:none;">
+      <input id="ob-code" class="ob-inp" placeholder="6-character invite code" maxlength="6" style="text-transform:uppercase;letter-spacing:3px;font-size:18px;text-align:center;">
+      <div class="ob-err" id="ob-err-join"></div>
+      <button class="btn-full" onclick="joinHousehold()">Join family</button>
+    </div>
+    <div id="ob-code-display" style="display:none;">
+      <div class="ob-ttl2" style="font-size:14px;color:var(--t2);margin-bottom:4px;">Your family's invite code:</div>
+      <div class="code-display"><div class="code-val" id="ob-code-val"></div><div class="code-hint">Share this with your family members so they can join</div></div>
+      <button class="btn-full" onclick="finishOnboard()">Enter Our Table →</button>
+    </div>
+    <div class="sign-out-link" onclick="doSignOut()">Sign out</div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none;">
+
+<div class="hdr">
+  <div class="hdr-in">
+    <div class="logo">🌿 Our Table <span class="logo-sub" id="family-name-lbl"></span></div>
+    <div class="hdr-r">
+      <span class="hwk" id="hdr-wk" onclick="switchTab('history', null, 'nb-hist')" title="View history"></span>
+      <div class="htog no-print">
+        <label class="tog"><input type="checkbox" id="ptog" onchange="togglePhilip()"><div class="tbg"></div><div class="tdt"></div></label>
+        <span class="htog-lbl">Philip</span>
+      </div>
+      <div id="user-avatar-wrap"></div>
+    </div>
+  </div>
+</div>
+
+<div id="hist-banner" style="display:none;" class="hist-banner no-print">
+  <div class="hist-banner-ttl" id="hist-banner-ttl">📅 Viewing past week</div>
+  <button class="hist-back" onclick="exitHistory()">← Current week</button>
+</div>
+
+<div class="dtabs no-print">
+  <button class="dtab on" onclick="ST.tab='week';switchTab(this)">🗓 This Week</button>
+  <button class="dtab" onclick="ST.tab='grocery';switchTab(this)">🛒 Grocery</button>
+  <button class="dtab" onclick="ST.tab='favorites';switchTab(this)" id="fav-dtab">⭐ Favorites</button>
+  <button class="dtab" onclick="ST.tab='history';switchTab(this)">📅 History</button>
+  <button class="dtab" onclick="ST.tab='settings';switchTab(this)">⚙️ Settings</button>
+</div>
+
+<div class="views">
+  <div class="view active" id="view-week">
+    <div class="portion-bar no-print">
+      <div></div>
+      <div class="portion-ctrl">
+        <span class="portion-lbl">🍽 Servings:</span>
+        <select class="portion-sel" id="portion-sel" onchange="setPortionScale(this.value)">
+          <option value="0.4">Just us 2</option>
+          <option value="0.6">Small family (3)</option>
+          <option value="1.0" selected>Family (5)</option>
+          <option value="1.6">With guests (8)</option>
+          <option value="2.0">Big crowd (10)</option>
+        </select>
+      </div>
+    </div>
+    <div class="dscroll no-print" id="pills"></div>
+    <div id="mob-day"></div>
+    <div class="dgrid" id="dsk-grid"></div>
+  </div>
+
+  <div class="view" id="view-grocery">
+    <div class="sec-hdr">
+      <div><div class="sec-ttl">🛒 Grocery List</div><div class="sec-sub" id="g-sub"></div></div>
+      <div class="g-acts">
+        <button class="ghost no-print" onclick="clearGroc()">Clear all</button>
+        <button class="ghost no-print" onclick="window.print()">🖨 Print</button>
+      </div>
+    </div>
+    <div class="g-prog no-print"><div class="g-prog-bar" id="g-bar" style="width:0%"></div></div>
+    <div id="g-body"></div>
+  </div>
+
+  <div class="view" id="view-favorites">
+    <div class="sec-hdr"><div><div class="sec-ttl">⭐ Saved Favorites</div><div class="sec-sub">Dinners you've loved — saved for future weeks</div></div></div>
+    <div id="fav-body"></div>
+  </div>
+
+  <div class="view" id="view-history">
+    <div class="sec-hdr"><div><div class="sec-ttl">📅 Meal History</div><div class="sec-sub">Every week archived — tap any week to view or cook from it</div></div></div>
+    <div id="hist-body"></div>
+  </div>
+
+  <div class="view" id="view-settings">
+    <div class="sec-hdr"><div><div class="sec-ttl">⚙️ Settings</div></div></div>
+
+    <div class="scard">
+      <div class="srow">
+        <div class="slbl">💬 Feedback for next week</div>
+        <div class="sdesc" style="margin-bottom:8px;">What did you love? What to skip? Anything you'd like more of?</div>
+        <textarea id="wk-fb" class="nta" placeholder="e.g. Korean bowls were a hit! Tuesday felt too heavy. More Mediterranean please." onblur="saveFb()" style="min-height:80px;margin-top:6px;"></textarea>
+      </div>
+      <div class="srow">
+        <div class="slbl">📤 Done for the week?</div>
+        <div class="sdesc" style="margin-bottom:12px;">Tap below to send your ratings and feedback to Philip. He'll have your new plan ready for the weekend — you don't need to do anything else.</div>
+        <button class="slink" onclick="showSendModal()" style="width:100%;justify-content:center;font-size:15px;padding:13px;">Send to Philip ✉️</button>
+      </div>
+    </div>
+
+    <div class="scard">
+      <div class="srow">
+        <div class="slbl">🏠 My Pantry</div>
+        <div class="sdesc">Check off items you always keep on hand — they'll be auto-checked on your grocery list each week so you only see what you actually need to buy.</div>
+        <div class="pantry-grid" id="pantry-grid"></div>
+      </div>
+    </div>
+
+    <div class="scard">
+      <div class="srow">
+        <div class="slbl">🏡 Family invite code</div>
+        <div class="sdesc" style="margin-bottom:8px;">Share this code with family members so they can join your table.</div>
+        <div class="code-display" style="margin-top:0;"><div class="code-val" id="settings-invite-code" style="font-size:28px;letter-spacing:6px;">——</div></div>
+      </div>
+      <div class="srow">
+        <div class="slbl">👤 Signed in as</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
+          <div id="settings-user-info" style="flex:1;font-size:13px;color:var(--t2);"></div>
+          <button class="ghost" onclick="doSignOut()">Sign out</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="version">Our Table v2.0 · Firebase-powered · Built with ❤️ by Philip</div>
+  </div>
+</div>
+
+<div class="bnav no-print">
+  <button class="nb on" id="nb-week"  onclick="ST.tab='week';switchTab(null,'nb-week')"><div class="ni">🗓</div>Week</button>
+  <button class="nb" id="nb-groc"  onclick="ST.tab='grocery';switchTab(null,'nb-groc')"><div class="ni">🛒</div>Grocery</button>
+  <button class="nb" id="nb-fav"   onclick="ST.tab='favorites';switchTab(null,'nb-fav')"><div class="ni">⭐</div>Favs</button>
+  <button class="nb" id="nb-hist"  onclick="ST.tab='history';switchTab(null,'nb-hist')"><div class="ni">📅</div>History</button>
+  <button class="nb" id="nb-set"   onclick="ST.tab='settings';switchTab(null,'nb-set')"><div class="ni">⚙️</div>Settings</button>
+</div>
+
+</div><!-- /app -->
+
+<!-- SEND MODAL -->
+<div id="send-modal" class="moverlay" style="display:none;" onclick="closeModalOutside(event)">
+  <div class="mbox" onclick="event.stopPropagation()">
+    <div class="mttl">✅ You're all set!</div>
+    <div class="msub">Copy the message below and send it to Philip as a text. He'll update the app — you're done for the week! 🎉</div>
+    <textarea id="prompt-ta" class="mta" readonly></textarea>
+    <button class="slink" onclick="copyPrompt()" style="width:100%;justify-content:center;margin-top:12px;padding:12px;">📋 Copy message</button>
+    <div id="copy-confirm" class="mconfirm">✓ Copied! Send it to Philip in a text message.</div>
+    <button class="mclose" onclick="closeModal()">Done</button>
+  </div>
+</div>
+
+<script>
+// ── FIREBASE CONFIG ───────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyBmgH_0HyVVmhNpBAyhJaFCh5vFqwuP_KQ",
+  authDomain: "our-table-nourish.firebaseapp.com",
+  projectId: "our-table-nourish",
+  storageBucket: "our-table-nourish.firebasestorage.app",
+  messagingSenderId: "910654343034",
+  appId: "1:910654343034:web:78eb3464e629e2ca0838c3"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+// ── FLAVOR MAP ────────────────────────────────────────────
+const FL={Korean:{bg:'#e6effe',c:'#2840b8'},Japanese:{bg:'#e8f6f0',c:'#1d6b4a'},'Tex-Mex':{bg:'#fff3e0',c:'#7a4000'},Mexican:{bg:'#fff3e0',c:'#7a4000'},Mediterranean:{bg:'#f0edff',c:'#4a35a0'},American:{bg:'#fff0ea',c:'#8a3010'},Thai:{bg:'#e8f6f0',c:'#1d6b4a'},Indian:{bg:'#fff3e0',c:'#7a4000'},Greek:{bg:'#f0edff',c:'#4a35a0'},Chinese:{bg:'#e6effe',c:'#2840b8'},Asian:{bg:'#e8f6f0',c:'#1d6b4a'},Italian:{bg:'#fff0ea',c:'#8a3010'}};
+function flv(f){if(!f)return{bg:'#e8f6f0',c:'#1d6b4a'};for(const[k,v]of Object.entries(FL)){if(f.toLowerCase().includes(k.toLowerCase()))return v;}return{bg:'#e8f6f0',c:'#1d6b4a'};}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+const STAPLES=[
+  // PROTEINS — non-dinner uses only
+  {name:"chicken breast boneless",qty:2,unit:"lbs",cat:"proteins",note:"wife lunches & wraps all week"},
+  {name:"turkey deli slices",qty:12,unit:"oz",cat:"proteins",note:"wife & Philip lunches"},
+  {name:"turkey sausage links",qty:12,unit:"oz",cat:"proteins",note:"wife Mon breakfast + Philip Tue brunch"},
+  {name:"smoked salmon",qty:4,unit:"oz",cat:"proteins",note:"Philip Wed brunch"},
+  {name:"flank steak",qty:8,unit:"oz",cat:"proteins",note:"Philip Sat brunch burrito"},
+  {name:"albacore tuna",qty:2,unit:"cans",cat:"proteins",note:"wife Wed lunch"},
+  // PRODUCE — non-dinner uses only
+  {name:"apples",qty:4,unit:"each",cat:"produce",note:"wife snacks"},
+  {name:"bananas",qty:7,unit:"each",cat:"produce",note:"Philip brunches & shakes"},
+  {name:"mixed berries frozen",qty:2,unit:"bags",cat:"produce",note:"wife breakfasts & smoothies"},
+  {name:"grapes red",qty:1,unit:"lbs",cat:"produce",note:"wife Tue snack"},
+  {name:"romaine lettuce",qty:1,unit:"each",cat:"produce",note:"wife Mon lunch wrap"},
+  {name:"butter lettuce",qty:1,unit:"each",cat:"produce",note:"wife Fri lunch wraps"},
+  {name:"baby spinach",qty:10,unit:"oz",cat:"produce",note:"wife smoothies + Philip brunches"},
+  {name:"celery",qty:1,unit:"bunch",cat:"produce",note:"wife Thu snack"},
+  {name:"baby carrots",qty:1,unit:"bag",cat:"produce",note:"wife Sat snack"},
+  {name:"sweet potatoes",qty:2,unit:"each",cat:"produce",note:"Philip Thu brunch hash"},
+  {name:"avocados",qty:3,unit:"each",cat:"produce",note:"wife breakfasts & lunches (non-dinner)"},
+  {name:"lemons",qty:2,unit:"each",cat:"produce",note:"wife lunches"},
+  {name:"cherry tomatoes",qty:0.5,unit:"pint",cat:"produce",note:"wife Fri snack"},
+  {name:"seasonal fruit",qty:1,unit:"bag",cat:"produce",note:"wife Sun breakfast"},
+  {name:"bell peppers",qty:4,unit:"each",cat:"produce",note:"Philip brunches Thu/Fri/Sat"},
+  {name:"red onion",qty:1,unit:"each",cat:"produce",note:"wife tuna salad"},
+  // GRAINS — non-dinner only
+  {name:"Ezekiel bread",qty:1,unit:"loaf",cat:"grains"},
+  {name:"rolled oats",qty:16,unit:"oz",cat:"grains",note:"wife Thu breakfast"},
+  {name:"granola",qty:1,unit:"bag",cat:"grains",note:"wife Mon parfait"},
+  {name:"quinoa",qty:1,unit:"cup",cat:"grains",note:"wife Thu lunch bowl"},
+  {name:"whole wheat tortillas large",qty:6,unit:"each",cat:"grains",note:"Philip brunches + wife lunches"},
+  {name:"rice cakes plain",qty:1,unit:"bag",cat:"grains",note:"Philip Sun sweet"},
+  {name:"protein pancake mix",qty:1,unit:"box",cat:"grains",note:"Philip Tue brunch"},
+  {name:"whole wheat bread",qty:1,unit:"loaf",cat:"grains",note:"wife Sat panini"},
+  // DAIRY — eggs include all non-dinner uses; dinner eggs are added via si[] and will combine here
+  {name:"Greek yogurt plain",qty:32,unit:"oz",cat:"dairy"},
+  {name:"Siggi's vanilla skyr",qty:4,unit:"each",cat:"dairy"},
+  {name:"Siggi's strawberry skyr",qty:2,unit:"each",cat:"dairy"},
+  {name:"cottage cheese",qty:24,unit:"oz",cat:"dairy"},
+  {name:"eggs",qty:20,unit:"each",cat:"dairy",note:"breakfasts, brunches & lunches — dinner eggs combine here automatically"},
+  {name:"cheddar shredded",qty:8,unit:"oz",cat:"dairy"},
+  {name:"provolone slices",qty:6,unit:"oz",cat:"dairy"},
+  {name:"almond milk unsweetened",qty:0.5,unit:"gallon",cat:"dairy"},
+  {name:"string cheese",qty:1,unit:"pack",cat:"dairy"},
+  {name:"almonds",qty:2,unit:"oz",cat:"dairy",note:"wife Fri snack"},
+  {name:"parmesan",qty:2,unit:"oz",cat:"dairy",note:"wife Mon caesar wrap"},
+  // PANTRY — shopping units (bottles/jars).
+  // Amounts used in dinner recipes will appear as a ref note: "1 bottle · 10 tbsp in recipes"
+  {name:"soy sauce",qty:1,unit:"bottle",cat:"pantry"},
+  {name:"sesame oil",qty:1,unit:"bottle",cat:"pantry"},
+  {name:"olive oil",qty:1,unit:"bottle",cat:"pantry"},
+  {name:"avocado oil",qty:1,unit:"bottle",cat:"pantry"},
+  {name:"vegetable oil",qty:1,unit:"bottle",cat:"pantry"},
+  {name:"mirin",qty:1,unit:"bottle",cat:"pantry"},
+  {name:"rice vinegar",qty:1,unit:"bottle",cat:"pantry"},
+  {name:"fish sauce",qty:1,unit:"bottle",cat:"pantry"},
+  {name:"oyster sauce",qty:1,unit:"jar",cat:"pantry"},
+  {name:"honey",qty:1,unit:"jar",cat:"pantry"},
+  {name:"mayo",qty:1,unit:"jar",cat:"pantry"},
+  {name:"almond butter",qty:1,unit:"jar",cat:"pantry"},
+  {name:"peanut butter",qty:1,unit:"jar",cat:"pantry"},
+  {name:"apple cider vinegar",qty:1,unit:"bottle",cat:"pantry"},
+  {name:"BBQ sauce",qty:1,unit:"bottle",cat:"pantry"},
+  {name:"brown sugar",qty:1,unit:"box",cat:"pantry"},
+  {name:"chia seeds",qty:1,unit:"bag",cat:"pantry"},
+  {name:"hummus",qty:1,unit:"container",cat:"pantry"},
+  {name:"tahini",qty:1,unit:"jar",cat:"pantry"},
+  {name:"capers",qty:1,unit:"jar",cat:"pantry"},
+  {name:"pesto",qty:1,unit:"jar",cat:"pantry"},
+  {name:"white beans",qty:1,unit:"cans",cat:"pantry",note:"wife Wed lunch"},
+  {name:"Caesar dressing",qty:1,unit:"bottle",cat:"pantry"},
+  {name:"hoisin sauce",qty:1,unit:"bottle",cat:"pantry"},
+  {name:"salsa",qty:1,unit:"jar",cat:"pantry"},
+  {name:"raisins",qty:1,unit:"box",cat:"pantry",note:"wife Thu snack"},
+  {name:"walnuts",qty:4,unit:"oz",cat:"pantry"},
+  {name:"roasted red peppers jarred",qty:1,unit:"jar",cat:"pantry"},
+  {name:"whole grain mustard",qty:1,unit:"jar",cat:"pantry"},
+  {name:"protein powder",qty:1,unit:"check stock",cat:"pantry"},
+  // FLEX — Philip's personal snacks & sweets (always on the list)
+  {name:"Fairlife chocolate protein shakes",qty:8,unit:"each",cat:"flex"},
+  {name:"Fairlife whole milk",qty:0.5,unit:"gallon",cat:"flex"},
+  {name:"RX Bars",qty:4,unit:"each",cat:"flex",note:"Philip Thu snack"},
+  {name:"Poppi sodas",qty:6,unit:"each",cat:"flex"},
+  {name:"85% dark chocolate",qty:2,unit:"each",cat:"flex",note:"Philip daily sweet"},
+  {name:"dark chocolate covered almonds",qty:3,unit:"oz",cat:"flex",note:"Philip Thu sweet"},
+  {name:"Medjool dates",qty:1,unit:"bag",cat:"flex",note:"Philip Tue sweet"},
+  {name:"coconut date rolls",qty:1,unit:"bag",cat:"flex",note:"Philip Fri sweet"},
+  {name:"Oreos",qty:1,unit:"pack",cat:"flex",note:"Philip Sat flex sweet"},
+];;
+
+// ── PLAN DATA ─────────────────────────────────────────────
+const PLAN={"weekOf":"May 4, 2026","days":[{"day":"Monday","date":"May 4","wife":{"breakfast":{"name":"Peanut Butter Banana Overnight Oats","cal":355,"protein":30,"summary":"Rolled oats soaked in almond milk with vanilla protein powder, peanut butter, sliced banana, and a drizzle of honey \u2014 filling and energizing"},"lunch":{"name":"Turkey BLT Lettuce Wrap Bowl","cal":400,"protein":36,"summary":"Sliced turkey, crispy turkey bacon, cherry tomatoes, and avocado in crisp romaine leaves with a Greek yogurt ranch drizzle"},"snack":{"name":"Apple slices + almond butter","cal":175,"protein":5,"summary":"Classic fiber and healthy fat combo to bridge to dinner"},"eveningSnack":{"name":"Fairlife chocolate protein shake","cal":150,"protein":25,"summary":"25g protein to close the eating window strong"}},"philip":{"brunch":{"name":"4-Egg Scramble with Chorizo-Spiced Turkey & Roasted Peppers","cal":845,"protein":75,"summary":"Scrambled eggs with ground turkey seasoned with smoked paprika, cumin, and garlic, plus roasted peppers and shredded cheddar"},"snack":{"name":"Cottage cheese + pineapple chunks","cal":320,"protein":28,"summary":"Slow-digesting casein protein with natural sweetness mid-afternoon"},"sweet":{"name":"2 squares 85% dark chocolate","cal":95,"protein":2,"summary":"Daily sweet fix \u2014 rich, satisfying, antioxidant-packed"}},"dinner":{"name":"Hoisin Turkey & Bok Choy Stir-Fry","wifeServing":{"cal":455,"protein":42},"philipServing":{"cal":580,"protein":55},"summary":"Ground turkey glazed in rich hoisin sauce with crispy bok choy, snap peas, and water chestnuts over jasmine rice \u2014 bold umami flavor in 20 minutes","time":"20 min","flavorProfile":"Asian","ingredients":["1.5 lbs lean ground turkey","2 cups dry jasmine rice","2 heads baby bok choy, halved","1 cup snap peas, trimmed","1 can (8 oz) water chestnuts, drained and sliced","3 tbsp hoisin sauce","2 tbsp low-sodium soy sauce","1 tbsp sesame oil","1 tbsp rice vinegar","3 garlic cloves, minced","1 tbsp fresh ginger, grated","2 tbsp vegetable oil","Sesame seeds and green onions to serve"],"steps":["Cook rice per package directions.","Whisk hoisin, soy sauce, sesame oil, and rice vinegar into sauce. Set aside.","Heat vegetable oil in a wok over high heat. Brown turkey, breaking it up, 4\u20135 min.","Add garlic and ginger, cook 30 sec. Add bok choy and snap peas, stir-fry 2\u20133 min.","Add water chestnuts and pour sauce over. Toss everything together 1\u20132 min until glossy.","Serve over rice topped with sesame seeds and sliced green onions."],"si":[{"name":"ground turkey","qty":1.5,"unit":"lbs","cat":"proteins"},{"name":"jasmine rice","qty":2,"unit":"cup","cat":"grains"},{"name":"bok choy","qty":2,"unit":"each","cat":"produce"},{"name":"snap peas","qty":1,"unit":"cup","cat":"produce"},{"name":"water chestnuts","qty":1,"unit":"cans","cat":"pantry"},{"name":"hoisin sauce","qty":3,"unit":"tbsp","cat":"pantry"},{"name":"soy sauce","qty":2,"unit":"tbsp","cat":"pantry"},{"name":"sesame oil","qty":1,"unit":"tbsp","cat":"pantry"},{"name":"rice vinegar","qty":1,"unit":"tbsp","cat":"pantry"},{"name":"garlic","qty":3,"unit":"cloves","cat":"produce"},{"name":"ginger fresh","qty":1,"unit":"tbsp","cat":"produce"},{"name":"green onions","qty":1,"unit":"bunch","cat":"produce"},{"name":"sesame seeds","qty":1,"unit":"tbsp","cat":"pantry"}],"substitutes":[{"name":"Kung Pao Ground Turkey","flavorProfile":"Chinese","wifeServing":{"cal":450,"protein":42},"summary":"Spicy-tangy Kung Pao-style ground turkey with peanuts, dried chilies, and zucchini over jasmine rice","ingredients":["1.5 lbs lean ground turkey","2 cups dry jasmine rice","2 zucchini, diced","3 tbsp low-sodium soy sauce","2 tbsp rice vinegar","1 tbsp hoisin sauce","1 tsp sesame oil","1 tbsp cornstarch","1 tbsp honey","3 garlic cloves, minced","1 tsp red pepper flakes","\u00bc cup roasted peanuts","2 tbsp vegetable oil","Green onions to serve"],"steps":["Cook rice. Whisk soy sauce, rice vinegar, hoisin, sesame oil, cornstarch, and honey into sauce.","Brown turkey in hot oil over medium-high, 5 min. Add garlic and red pepper flakes, cook 30 sec.","Add zucchini, stir-fry 2 min. Pour sauce over, toss 1\u20132 min until thickened.","Stir in roasted peanuts. Serve over rice topped with green onions."],"si":[{"name":"ground turkey","qty":1.5,"unit":"lbs","cat":"proteins"},{"name":"jasmine rice","qty":2,"unit":"cup","cat":"grains"},{"name":"zucchini","qty":2,"unit":"each","cat":"produce"},{"name":"soy sauce","qty":3,"unit":"tbsp","cat":"pantry"},{"name":"hoisin sauce","qty":1,"unit":"tbsp","cat":"pantry"},{"name":"garlic","qty":3,"unit":"cloves","cat":"produce"},{"name":"peanuts roasted","qty":4,"unit":"oz","cat":"pantry"}]},{"name":"Teriyaki Turkey Meatball Bowls","flavorProfile":"Japanese","wifeServing":{"cal":460,"protein":43},"summary":"Juicy baked turkey meatballs glazed in homemade teriyaki sauce over steamed rice with broccoli and sesame","ingredients":["1.5 lbs lean ground turkey","2 cups dry jasmine rice","2 broccoli crowns, cut into florets","\u2153 cup panko breadcrumbs","1 egg","2 garlic cloves, minced","3 tbsp low-sodium soy sauce","2 tbsp mirin","1 tbsp brown sugar","1 tsp sesame oil","1 tsp fresh ginger, grated","Sesame seeds to serve"],"steps":["Preheat oven to 400\u00b0F. Mix turkey, panko, egg, garlic, ginger, salt. Form 20 meatballs. Bake 18\u201320 min.","Whisk soy sauce, mirin, brown sugar, sesame oil into teriyaki sauce. Simmer in a saucepan 2\u20133 min until slightly thickened.","Steam broccoli 4\u20135 min. Cook rice.","Toss baked meatballs in teriyaki glaze. Serve over rice with broccoli. Top with sesame seeds."],"si":[{"name":"ground turkey","qty":1.5,"unit":"lbs","cat":"proteins"},{"name":"jasmine rice","qty":2,"unit":"cup","cat":"grains"},{"name":"broccoli","qty":2,"unit":"each","cat":"produce"},{"name":"panko breadcrumbs","qty":0.33,"unit":"cup","cat":"pantry"},{"name":"eggs","qty":1,"unit":"each","cat":"dairy"},{"name":"soy sauce","qty":3,"unit":"tbsp","cat":"pantry"},{"name":"mirin","qty":2,"unit":"tbsp","cat":"pantry"},{"name":"brown sugar","qty":1,"unit":"tbsp","cat":"pantry"},{"name":"sesame oil","qty":1,"unit":"tsp","cat":"pantry"},{"name":"garlic","qty":2,"unit":"cloves","cat":"produce"}]}]}},{"day":"Tuesday","date":"May 5","wife":{"breakfast":{"name":"Spinach & Mushroom Egg White Frittata","cal":330,"protein":28,"summary":"Baked egg white frittata with saut\u00e9ed mushrooms, baby spinach, and shredded Parmesan \u2014 slice it, eat it, love it"},"lunch":{"name":"Mediterranean Tuna Pita Pocket","cal":410,"protein":36,"summary":"Albacore tuna with white beans, olive oil, lemon, and capers stuffed into a whole wheat pita with romaine and sliced tomato"},"snack":{"name":"String cheese + red grapes","cal":155,"protein":8,"summary":"Easy protein and natural sugar combo to hold hunger before dinner"},"eveningSnack":{"name":"Siggi's vanilla skyr","cal":130,"protein":17,"summary":"Thick Icelandic skyr \u2014 light, tangy, 17g protein to close the window"}},"philip":{"brunch":{"name":"Sweet Potato & Ground Turkey Hash + 3 Fried Eggs","cal":860,"protein":73,"summary":"Crispy diced sweet potato with seasoned ground turkey, diced peppers, and onion \u2014 three sunny-side-up eggs on top, hot sauce on the side"},"snack":{"name":"RX Bar (chocolate sea salt)","cal":300,"protein":22,"summary":"Clean whole-food protein bar \u2014 dates, egg whites, cashews, no nonsense"},"sweet":{"name":"Medjool dates + peanut butter (2 dates)","cal":145,"protein":4,"summary":"Natural caramel sweetness with healthy fat \u2014 satisfying and clean"}},"dinner":{"name":"Carne Asada Burrito Bowls","wifeServing":{"cal":480,"protein":44},"philipServing":{"cal":610,"protein":57},"summary":"Marinated and seared flank steak over cilantro-lime rice with charred corn, black beans, pico de gallo, avocado, and a lime crema drizzle","time":"30 min","flavorProfile":"Mexican","ingredients":["1.5 lbs flank steak","2 cups dry jasmine rice","\u00bc cup fresh cilantro, chopped","Juice of 3 limes","1 cup frozen or canned corn kernels","1 can (15 oz) black beans, drained","2 avocados, sliced","2 Roma tomatoes, diced","\u00bd white onion, diced","1 jalape\u00f1o, minced (optional)","2 tbsp avocado oil","2 tsp cumin","1 tsp chili powder","1 tsp garlic powder","\u00bd cup sour cream or Greek yogurt"],"steps":["Mix cumin, chili powder, garlic powder, salt, pepper, and juice of 1 lime. Coat steak and marinate 15+ min.","Cook rice. Fluff with cilantro and juice of 1 lime.","Sear steak over high heat in avocado oil, 3\u20134 min per side for medium. Rest 10 min, slice thin against the grain.","Char corn in a dry skillet 3 min. Warm black beans.","Make pico: mix tomatoes, white onion, jalape\u00f1o, cilantro, remaining lime juice, and salt.","Mix sour cream with juice of \u00bd lime for crema. Build bowls: rice, steak, corn, beans, avocado, pico, crema."],"si":[{"name":"flank steak","qty":1.5,"unit":"lbs","cat":"proteins"},{"name":"jasmine rice","qty":2,"unit":"cup","cat":"grains"},{"name":"cilantro","qty":1,"unit":"bunch","cat":"produce"},{"name":"limes","qty":3,"unit":"each","cat":"produce"},{"name":"corn kernels","qty":1,"unit":"cup","cat":"produce"},{"name":"black beans","qty":1,"unit":"cans","cat":"pantry"},{"name":"avocados","qty":2,"unit":"each","cat":"produce"},{"name":"tomatoes","qty":2,"unit":"each","cat":"produce"},{"name":"sour cream","qty":0.5,"unit":"cup","cat":"dairy"},{"name":"avocado oil","qty":2,"unit":"tbsp","cat":"pantry"},{"name":"jalape\u00f1o","qty":1,"unit":"each","cat":"produce"}],"substitutes":[{"name":"Ground Turkey Taco Bowls with Street Corn","flavorProfile":"Tex-Mex","wifeServing":{"cal":465,"protein":41},"summary":"Seasoned taco turkey over cilantro rice with charred street corn salad, avocado, and cotija cheese","ingredients":["1.5 lbs lean ground turkey","2 cups dry jasmine rice","Juice of 2 limes","\u00bc cup cilantro, chopped","2 cups corn kernels","2 tbsp mayo","1 tsp chili powder","2 oz cotija or feta cheese, crumbled","2 avocados, sliced","1 packet taco seasoning","Sour cream to serve"],"steps":["Cook rice with cilantro and lime juice. Brown turkey with taco seasoning, 5\u20136 min.","Char corn in a dry skillet over high heat 3\u20134 min. Mix with mayo, chili powder, cotija, and lime juice to make street corn salad.","Slice avocados. Build bowls: cilantro rice, taco turkey, street corn salad, avocado. Dollop sour cream on top."],"si":[{"name":"ground turkey","qty":1.5,"unit":"lbs","cat":"proteins"},{"name":"jasmine rice","qty":2,"unit":"cup","cat":"grains"},{"name":"limes","qty":2,"unit":"each","cat":"produce"},{"name":"cilantro","qty":1,"unit":"bunch","cat":"produce"},{"name":"corn kernels","qty":2,"unit":"cup","cat":"produce"},{"name":"taco seasoning","qty":1,"unit":"packet","cat":"pantry"},{"name":"avocados","qty":2,"unit":"each","cat":"produce"},{"name":"cotija cheese","qty":2,"unit":"oz","cat":"dairy"},{"name":"sour cream","qty":0.5,"unit":"cup","cat":"dairy"}]},{"name":"Chicken Fajita Rice Bowls","flavorProfile":"Tex-Mex","wifeServing":{"cal":460,"protein":43},"summary":"Smoky fajita-spiced chicken thighs over rice with saut\u00e9ed peppers and onions, guacamole, and lime crema","ingredients":["2 lbs boneless chicken thighs","2 cups dry jasmine rice","3 bell peppers (mixed), sliced","1 red onion, sliced","2 tbsp fajita seasoning","2 tbsp avocado oil","2 avocados","Juice of 2 limes","\u00bd cup sour cream","Fresh cilantro"],"steps":["Season chicken with fajita seasoning. Cook rice.","Sear chicken in avocado oil over medium-high, 5\u20136 min per side. Rest 5 min, slice.","Saut\u00e9 peppers and onion in same pan 4\u20135 min until charred.","Mash avocados with lime juice and salt for guac. Mix sour cream with \u00bd lime juice for crema.","Build bowls: rice, sliced chicken, fajita veg, guac, crema, cilantro."],"si":[{"name":"chicken thighs boneless","qty":2,"unit":"lbs","cat":"proteins"},{"name":"jasmine rice","qty":2,"unit":"cup","cat":"grains"},{"name":"bell peppers","qty":3,"unit":"each","cat":"produce"},{"name":"red onion","qty":1,"unit":"each","cat":"produce"},{"name":"fajita seasoning","qty":1,"unit":"packet","cat":"pantry"},{"name":"avocados","qty":2,"unit":"each","cat":"produce"},{"name":"limes","qty":2,"unit":"each","cat":"produce"},{"name":"sour cream","qty":0.5,"unit":"cup","cat":"dairy"},{"name":"cilantro","qty":1,"unit":"bunch","cat":"produce"}]}]}},{"day":"Wednesday","date":"May 6","wife":{"breakfast":{"name":"Cottage Cheese & Berry Protein Bowl","cal":345,"protein":29,"summary":"Full-fat cottage cheese topped with fresh mixed berries, a drizzle of honey, crushed walnuts, and a sprinkle of cinnamon"},"lunch":{"name":"Grilled Chicken & Roasted Veggie Grain Bowl","cal":425,"protein":39,"summary":"Grilled chicken breast over farro or quinoa with roasted zucchini, cherry tomatoes, hummus, and a lemon-herb vinaigrette"},"snack":{"name":"Steamed edamame with sea salt","cal":160,"protein":14,"summary":"Plant protein + fiber snack \u2014 great source of phytoestrogens for hormone support"},"eveningSnack":{"name":"Cottage cheese + sliced cucumber + everything seasoning","cal":120,"protein":14,"summary":"Savory slow-protein wind-down snack"}},"philip":{"brunch":{"name":"Smoked Salmon & Avocado Toast Stack + 2 Fried Eggs","cal":875,"protein":70,"summary":"Two slices whole wheat toast with smashed avocado, smoked salmon, capers, red onion, and everything bagel seasoning \u2014 two fried eggs on the side"},"snack":{"name":"Full-fat Greek yogurt + walnuts + honey","cal":310,"protein":24,"summary":"Omega-3s from walnuts, probiotics from yogurt \u2014 quality mid-afternoon fuel"},"sweet":{"name":"Frozen banana + peanut butter","cal":140,"protein":5,"summary":"Nature's candy \u2014 frozen banana with peanut butter hits every time"}},"dinner":{"name":"Moroccan Spiced Chicken with Couscous","wifeServing":{"cal":470,"protein":44},"philipServing":{"cal":600,"protein":57},"summary":"Warmly spiced chicken thighs with cumin, coriander, cinnamon, and preserved lemon over fluffy couscous with roasted chickpeas and a cooling cucumber yogurt sauce","time":"35 min","flavorProfile":"Mediterranean","ingredients":["2 lbs boneless chicken thighs","2 cups dry couscous","1 can (15 oz) chickpeas, drained","1 cup plain Greek yogurt","1 cucumber, grated","Juice of 1 lemon","2 tsp cumin","1 tsp coriander","1 tsp smoked paprika","\u00bd tsp cinnamon","\u00bd tsp turmeric","3 garlic cloves, minced","2 tbsp olive oil","Fresh cilantro or parsley","Salt and pepper"],"steps":["Mix cumin, coriander, paprika, cinnamon, turmeric, garlic, olive oil, salt, pepper into spice paste. Coat chicken. Marinate 15+ min.","Toss chickpeas with olive oil, cumin, salt. Roast at 425\u00b0F 20 min until crispy.","Cook couscous: boil 2 cups water + \u00bd tsp salt. Stir in couscous, cover, rest 5 min. Fluff with fork.","Pan-sear or bake chicken at 425\u00b0F alongside chickpeas, 20\u201322 min until golden.","Make cucumber yogurt: squeeze moisture from grated cucumber, mix with yogurt, lemon juice, and a pinch of salt.","Serve couscous topped with chicken, crispy chickpeas, and a generous spoonful of cucumber yogurt. Garnish with fresh herbs."],"si":[{"name":"chicken thighs boneless","qty":2,"unit":"lbs","cat":"proteins"},{"name":"couscous","qty":2,"unit":"cup","cat":"grains"},{"name":"chickpeas","qty":1,"unit":"cans","cat":"pantry"},{"name":"Greek yogurt plain","qty":1,"unit":"cup","cat":"dairy"},{"name":"cucumbers","qty":1,"unit":"each","cat":"produce"},{"name":"lemon","qty":1,"unit":"each","cat":"produce"},{"name":"garlic","qty":3,"unit":"cloves","cat":"produce"},{"name":"olive oil","qty":2,"unit":"tbsp","cat":"pantry"},{"name":"cilantro","qty":1,"unit":"bunch","cat":"produce"}],"substitutes":[{"name":"Lamb-Spiced Ground Beef K\u00f6fte with Tabbouleh","flavorProfile":"Mediterranean","wifeServing":{"cal":460,"protein":42},"summary":"Middle Eastern-spiced beef patties with fresh tabbouleh, hummus, and warm pita \u2014 bold and herbaceous","ingredients":["1.5 lbs lean ground beef","4 pita breads","1 cup bulgur wheat (or couscous)","2 cups fresh parsley, finely chopped","2 Roma tomatoes, finely diced","\u00bd cucumber, finely diced","Juice of 2 lemons","3 tbsp olive oil","1 tsp cumin","1 tsp coriander","\u00bd tsp cinnamon","\u00bd tsp allspice","3 garlic cloves, minced","\u00bd cup hummus"],"steps":["Cook bulgur per package (or couscous). Toss with parsley, tomatoes, cucumber, lemon juice, 2 tbsp olive oil, salt \u2014 this is tabbouleh.","Mix ground beef with cumin, coriander, cinnamon, allspice, garlic, salt. Form into 12 oblong patties.","Grill or pan-sear patties over medium-high, 3\u20134 min per side.","Warm pita. Serve k\u00f6fte on or alongside warm pita with tabbouleh and a scoop of hummus."],"si":[{"name":"ground beef","qty":1.5,"unit":"lbs","cat":"proteins"},{"name":"pita bread","qty":4,"unit":"each","cat":"grains"},{"name":"couscous","qty":1,"unit":"cup","cat":"grains"},{"name":"parsley fresh","qty":1,"unit":"bunch","cat":"produce"},{"name":"tomatoes","qty":2,"unit":"each","cat":"produce"},{"name":"cucumbers","qty":1,"unit":"each","cat":"produce"},{"name":"lemons","qty":2,"unit":"each","cat":"produce"},{"name":"olive oil","qty":3,"unit":"tbsp","cat":"pantry"},{"name":"hummus","qty":1,"unit":"container","cat":"pantry"}]},{"name":"Lemon Herb Salmon with Couscous & Asparagus","flavorProfile":"Mediterranean","wifeServing":{"cal":480,"protein":45},"summary":"Baked salmon with lemon, garlic, and herbs over herbed couscous with roasted asparagus and a dill yogurt sauce","ingredients":["4 salmon fillets (6 oz each)","2 cups dry couscous","1 bunch asparagus, trimmed","Juice and zest of 2 lemons","3 garlic cloves, minced","2 tbsp olive oil","1 tsp dried thyme","1 tsp dried dill","\u00bd cup plain Greek yogurt","Salt and pepper","Fresh dill to serve"],"steps":["Preheat oven to 400\u00b0F. Toss asparagus with olive oil and salt on a sheet pan. Roast 15 min.","Season salmon with lemon zest, garlic, thyme, olive oil, salt, pepper. Place on sheet pan with asparagus last 12\u201314 min.","Cook couscous. Fluff and toss with lemon juice, olive oil, salt, and fresh dill.","Dill yogurt sauce: mix yogurt, lemon juice, dill, and salt.","Serve salmon over herbed couscous with asparagus. Drizzle with dill yogurt sauce."],"si":[{"name":"salmon fillets","qty":24,"unit":"oz","cat":"proteins"},{"name":"couscous","qty":2,"unit":"cup","cat":"grains"},{"name":"asparagus","qty":1,"unit":"bunch","cat":"produce"},{"name":"lemons","qty":2,"unit":"each","cat":"produce"},{"name":"garlic","qty":3,"unit":"cloves","cat":"produce"},{"name":"olive oil","qty":2,"unit":"tbsp","cat":"pantry"},{"name":"Greek yogurt plain","qty":0.5,"unit":"cup","cat":"dairy"}]}]}},{"day":"Thursday","date":"May 7","wife":{"breakfast":{"name":"High-Protein Blueberry Muffins + Greek Yogurt","cal":360,"protein":28,"summary":"Two protein-packed blueberry muffins (made with protein powder and almond flour) served with a side of plain Greek yogurt \u2014 make ahead Sunday for the week"},"lunch":{"name":"Asian Chicken Salad with Sesame-Ginger Dressing","cal":420,"protein":39,"summary":"Grilled chicken over shredded napa cabbage, shredded carrots, edamame, mandarin oranges, and sliced almonds with a bright sesame-ginger vinaigrette"},"snack":{"name":"Celery sticks + peanut butter + raisins","cal":165,"protein":5,"summary":"Ants on a log \u2014 fiber, fat, and a little natural sweetness"},"eveningSnack":{"name":"Fairlife chocolate protein shake","cal":150,"protein":25,"summary":"25g protein to close the eating window strong"}},"philip":{"brunch":{"name":"Protein Pancakes + Turkey Sausage + Fresh Berries","cal":855,"protein":72,"summary":"3 large protein pancakes, 3 turkey sausage links, and a bowl of fresh mixed berries with a drizzle of honey"},"snack":{"name":"Fairlife whole milk + apple","cal":270,"protein":20,"summary":"Clean and simple \u2014 real milk protein meets fiber from a crisp apple"},"sweet":{"name":"Dark chocolate covered almonds, 1 oz","cal":150,"protein":4,"summary":"Sweet and crunchy \u2014 earns it every Thursday"}},"dinner":{"name":"Japanese Chicken Katsu Curry","wifeServing":{"cal":490,"protein":44},"philipServing":{"cal":620,"protein":57},"summary":"Crispy panko-breaded chicken cutlets over steamed rice smothered in a rich, gently spiced Japanese curry sauce with potatoes and carrots \u2014 comfort food done right","time":"40 min","flavorProfile":"Japanese","ingredients":["2 lbs boneless chicken breasts, pounded thin","2 cups dry jasmine rice","2 medium potatoes, cubed","2 carrots, sliced into coins","1 onion, diced","1 package Japanese curry roux (S&B Golden Curry, medium)","2 cups chicken broth","1 cup panko breadcrumbs","2 eggs, beaten","\u00bd cup flour","Vegetable oil for shallow frying","Salt and pepper"],"steps":["Season chicken with salt and pepper. Dredge in flour, dip in beaten egg, coat in panko. Press firmly to adhere.","Shallow fry chicken cutlets in \u00bd inch of oil over medium-high heat, 3\u20134 min per side until golden and crispy. Drain on paper towels and slice.","In a separate pot, saut\u00e9 onion 5 min. Add potatoes, carrots, and chicken broth. Simmer 15 min until tender.","Break curry roux into pieces, stir into the pot. Simmer 5 min until thick and glossy.","Cook rice. Serve rice topped with curry and sliced chicken katsu beside or on top."],"si":[{"name":"chicken breast boneless","qty":2,"unit":"lbs","cat":"proteins"},{"name":"jasmine rice","qty":2,"unit":"cup","cat":"grains"},{"name":"potatoes","qty":2,"unit":"each","cat":"produce"},{"name":"carrots","qty":2,"unit":"each","cat":"produce"},{"name":"onion","qty":1,"unit":"each","cat":"produce"},{"name":"Japanese curry roux","qty":1,"unit":"each","cat":"pantry"},{"name":"chicken broth","qty":2,"unit":"cup","cat":"pantry"},{"name":"panko breadcrumbs","qty":1,"unit":"cup","cat":"pantry"},{"name":"eggs","qty":2,"unit":"each","cat":"dairy"}],"substitutes":[{"name":"Chicken Tonkatsu with Sesame Slaw","flavorProfile":"Japanese","wifeServing":{"cal":470,"protein":43},"summary":"Crispy panko chicken cutlets with a tangy sesame coleslaw and tonkatsu dipping sauce over rice","ingredients":["2 lbs boneless chicken breasts, pounded thin","2 cups dry jasmine rice","3 cups coleslaw mix","3 tbsp mayo","1 tbsp rice vinegar","1 tsp sesame oil","1 tsp sesame seeds","1 cup panko breadcrumbs","2 eggs, beaten","\u00bd cup flour","Vegetable oil for frying","Tonkatsu sauce (or mix: 2 tbsp ketchup + 1 tbsp Worcestershire + 1 tsp soy sauce)","Salt and pepper"],"steps":["Whisk mayo, rice vinegar, sesame oil, and sesame seeds. Toss with coleslaw mix. Refrigerate.","Season chicken with salt and pepper. Dredge in flour, dip in egg, coat in panko.","Shallow fry in \u00bd inch vegetable oil, 3\u20134 min per side until golden. Drain and slice.","Cook rice. Mix tonkatsu sauce ingredients together.","Serve sliced chicken over rice with sesame slaw on the side. Drizzle tonkatsu sauce over chicken."],"si":[{"name":"chicken breast boneless","qty":2,"unit":"lbs","cat":"proteins"},{"name":"jasmine rice","qty":2,"unit":"cup","cat":"grains"},{"name":"coleslaw mix","qty":1,"unit":"bag","cat":"produce"},{"name":"panko breadcrumbs","qty":1,"unit":"cup","cat":"pantry"},{"name":"eggs","qty":2,"unit":"each","cat":"dairy"},{"name":"sesame oil","qty":1,"unit":"tsp","cat":"pantry"},{"name":"sesame seeds","qty":1,"unit":"tbsp","cat":"pantry"}]},{"name":"Miso Glazed Salmon with Bok Choy","flavorProfile":"Japanese","wifeServing":{"cal":480,"protein":46},"summary":"Oven-roasted salmon fillets in a sweet white miso glaze with steamed baby bok choy over jasmine rice","ingredients":["4 salmon fillets (6 oz each)","2 cups dry jasmine rice","2 heads baby bok choy, halved","2 tbsp white miso paste","1 tbsp mirin","1 tbsp low-sodium soy sauce","1 tbsp honey","1 tsp sesame oil","2 garlic cloves, minced","Sesame seeds and green onions to serve"],"steps":["Whisk miso, mirin, soy sauce, honey, sesame oil, and garlic into glaze.","Coat salmon fillets generously with glaze. Marinate 10+ min.","Roast salmon at 400\u00b0F on a lined sheet pan 12\u201314 min until caramelized.","Steam bok choy with a splash of water, covered, 3\u20134 min. Cook rice.","Serve salmon over rice alongside bok choy. Top with sesame seeds and green onions."],"si":[{"name":"salmon fillets","qty":24,"unit":"oz","cat":"proteins"},{"name":"jasmine rice","qty":2,"unit":"cup","cat":"grains"},{"name":"bok choy","qty":2,"unit":"each","cat":"produce"},{"name":"white miso paste","qty":2,"unit":"tbsp","cat":"pantry"},{"name":"mirin","qty":1,"unit":"tbsp","cat":"pantry"},{"name":"soy sauce","qty":1,"unit":"tbsp","cat":"pantry"},{"name":"honey","qty":1,"unit":"tbsp","cat":"pantry"},{"name":"garlic","qty":2,"unit":"cloves","cat":"produce"},{"name":"sesame seeds","qty":1,"unit":"tbsp","cat":"pantry"}]}]}},{"day":"Friday","date":"May 8","wife":{"breakfast":{"name":"Avocado Toast + Smoked Salmon + Capers","cal":385,"protein":28,"summary":"Toasted Ezekiel bread, smashed avocado, draped with smoked salmon, capers, red onion, and a squeeze of lemon \u2014 elevated and protein-rich"},"lunch":{"name":"Turkey & Avocado Club Wrap","cal":415,"protein":38,"summary":"Sliced turkey, avocado, turkey bacon, romaine, and tomato with a smear of whole grain mustard in a whole wheat tortilla"},"snack":{"name":"Hard-boiled egg + cherry tomatoes","cal":120,"protein":10,"summary":"Quick clean protein hit with lycopene from fresh tomatoes"},"eveningSnack":{"name":"Siggi's strawberry skyr + almonds","cal":175,"protein":18,"summary":"Protein and healthy fat combo to keep hunger away overnight"}},"philip":{"brunch":{"name":"5-Egg Veggie Omelette + Whole Wheat Toast + Turkey Slices","cal":845,"protein":75,"summary":"Big omelette stuffed with mushrooms, bell peppers, spinach, and cheddar \u2014 whole wheat toast and deli turkey slices on the side"},"snack":{"name":"Cottage cheese + diced mango","cal":315,"protein":26,"summary":"Tropical twist on casein protein \u2014 slow-digesting with natural sweetness"},"sweet":{"name":"Coconut date rolls (x2)","cal":130,"protein":2,"summary":"Wholefood sweet: dates, shredded coconut, naturally satisfying before 7pm"}},"dinner":{"name":"Vietnamese Lemongrass Chicken Bowls","wifeServing":{"cal":460,"protein":43},"philipServing":{"cal":585,"protein":56},"summary":"Fragrant lemongrass and fish sauce marinated chicken thighs over vermicelli rice noodles with fresh herbs, quick-pickled carrots, cucumber, and a bright nuoc cham dipping sauce","time":"30 min","flavorProfile":"Asian","ingredients":["2 lbs boneless chicken thighs","8 oz rice vermicelli noodles","2 carrots, julienned","2 cucumbers, thinly sliced","3 tbsp rice vinegar","1 tsp sugar","2 stalks lemongrass, minced (or 2 tsp lemongrass paste)","3 garlic cloves, minced","2 tbsp fish sauce","1 tbsp honey","1 tbsp vegetable oil","Fresh mint, cilantro, and Thai basil to serve","2 tbsp lime juice","1 tbsp sriracha (for nuoc cham)"],"steps":["Nuoc cham: whisk fish sauce, lime juice, honey, sriracha, and 2 tbsp water. Set aside.","Quick pickle: toss carrots and cucumbers with rice vinegar, sugar, and a pinch of salt. Let sit 15 min.","Marinate chicken: mix lemongrass, garlic, fish sauce, honey, and oil. Coat thighs and marinate 15+ min.","Cook rice vermicelli per package. Drain and rinse with cold water.","Grill or pan-sear chicken over medium-high, 5\u20136 min per side. Rest 5 min, slice.","Build bowls: noodles, sliced chicken, pickled vegetables, fresh herbs. Drizzle nuoc cham generously over top."],"si":[{"name":"chicken thighs boneless","qty":2,"unit":"lbs","cat":"proteins"},{"name":"rice vermicelli","qty":8,"unit":"oz","cat":"grains"},{"name":"carrots","qty":2,"unit":"each","cat":"produce"},{"name":"cucumbers","qty":2,"unit":"each","cat":"produce"},{"name":"rice vinegar","qty":3,"unit":"tbsp","cat":"pantry"},{"name":"fish sauce","qty":3,"unit":"tbsp","cat":"pantry"},{"name":"limes","qty":2,"unit":"each","cat":"produce"},{"name":"honey","qty":1,"unit":"tbsp","cat":"pantry"},{"name":"fresh mint","qty":1,"unit":"bunch","cat":"produce"},{"name":"cilantro","qty":1,"unit":"bunch","cat":"produce"},{"name":"sriracha","qty":1,"unit":"tbsp","cat":"pantry"},{"name":"garlic","qty":3,"unit":"cloves","cat":"produce"}],"substitutes":[{"name":"Thai Basil Beef Stir-Fry (Pad Krapow Nua)","flavorProfile":"Thai","wifeServing":{"cal":465,"protein":43},"summary":"Ground beef stir-fried with Thai basil, garlic, chilies, and oyster sauce over jasmine rice topped with a crispy fried egg","ingredients":["1.5 lbs lean ground beef","2 cups dry jasmine rice","5 garlic cloves, minced","2 Thai chilies or 1 jalape\u00f1o, minced","3 tbsp low-sodium soy sauce","2 tbsp oyster sauce","1 tbsp fish sauce","1 tbsp brown sugar","Large handful fresh Thai basil","2 tbsp vegetable oil","5 eggs, fried sunny-side up"],"steps":["Cook rice. Prep all ingredients \u2014 this cooks in 8 minutes.","Heat oil in wok over very high heat. Add garlic and chilies, stir-fry 30 sec.","Add ground beef, break up, cook 4\u20135 min until no longer pink.","Pour in soy sauce, oyster sauce, fish sauce, and brown sugar. Stir-fry 2 min.","Off heat, fold in fresh basil. Fry eggs sunny-side up in a separate pan.","Serve rice topped with beef and a fried egg."],"si":[{"name":"ground beef","qty":1.5,"unit":"lbs","cat":"proteins"},{"name":"jasmine rice","qty":2,"unit":"cup","cat":"grains"},{"name":"garlic","qty":5,"unit":"cloves","cat":"produce"},{"name":"jalape\u00f1o","qty":1,"unit":"each","cat":"produce"},{"name":"soy sauce","qty":3,"unit":"tbsp","cat":"pantry"},{"name":"oyster sauce","qty":2,"unit":"tbsp","cat":"pantry"},{"name":"fish sauce","qty":1,"unit":"tbsp","cat":"pantry"},{"name":"brown sugar","qty":1,"unit":"tbsp","cat":"pantry"},{"name":"Thai basil","qty":1,"unit":"bunch","cat":"produce"},{"name":"eggs","qty":5,"unit":"each","cat":"dairy"}]},{"name":"Korean Japchae Noodle Bowls","flavorProfile":"Korean","wifeServing":{"cal":455,"protein":40},"summary":"Sweet potato glass noodles stir-fried with flank steak, spinach, mushrooms, and sesame in a savory-sweet sauce","ingredients":["1 lb flank steak, thinly sliced","8 oz Korean glass noodles (dangmyeon)","5 oz baby spinach","8 oz shiitake mushrooms, sliced","3 garlic cloves, minced","3 tbsp low-sodium soy sauce","2 tbsp sesame oil","1 tbsp honey","1 tbsp vegetable oil","Sesame seeds and green onions to serve"],"steps":["Soak glass noodles in warm water 30 min. Boil 6 min. Drain and cut shorter.","Marinate beef in 1 tbsp soy sauce and 1 tbsp sesame oil 10 min. Stir-fry over very high heat 2 min. Set aside.","Saut\u00e9 mushrooms in remaining sesame oil 3\u20134 min. Wilt spinach 1 min. Add garlic 30 sec.","Whisk remaining soy sauce, sesame oil, honey into sauce.","Combine noodles, beef, mushrooms, spinach. Pour sauce over. Toss over medium heat 2 min.","Top with sesame seeds and green onions."],"si":[{"name":"flank steak","qty":1,"unit":"lbs","cat":"proteins"},{"name":"glass noodles","qty":8,"unit":"oz","cat":"grains"},{"name":"baby spinach","qty":5,"unit":"oz","cat":"produce"},{"name":"shiitake mushrooms","qty":8,"unit":"oz","cat":"produce"},{"name":"garlic","qty":3,"unit":"cloves","cat":"produce"},{"name":"soy sauce","qty":3,"unit":"tbsp","cat":"pantry"},{"name":"sesame oil","qty":2,"unit":"tbsp","cat":"pantry"},{"name":"honey","qty":1,"unit":"tbsp","cat":"pantry"}]}]}},{"day":"Saturday","date":"May 9","wife":{"breakfast":{"name":"Protein Waffles + Strawberries + Whipped Cream","cal":395,"protein":28,"summary":"Weekend treat: golden protein waffles topped with fresh sliced strawberries and a small dollop of real whipped cream \u2014 you've earned it"},"lunch":{"name":"Chicken & White Bean Tuscan Soup","cal":420,"protein":38,"summary":"Hearty Tuscan-style soup with shredded chicken, white beans, kale, and diced tomatoes in a light garlic-herb broth \u2014 cozy Saturday lunch"},"snack":{"name":"Hummus + raw veggie plate","cal":150,"protein":5,"summary":"Bell peppers, cucumbers, and carrots with a generous scoop of hummus"},"eveningSnack":{"name":"Chocolate protein mousse","cal":165,"protein":22,"summary":"Greek yogurt whipped with chocolate protein powder \u2014 legit dessert that actually works"}},"philip":{"brunch":{"name":"Steak & Egg Skillet with Home Fries","cal":910,"protein":82,"summary":"Sliced skirt steak, 3 fried eggs, and crispy home fries (diced potatoes roasted in cast iron with garlic and paprika) \u2014 big Saturday fuel"},"snack":{"name":"Protein shake + banana","cal":330,"protein":30,"summary":"Post-workout Saturday replenishment \u2014 earned it"},"sweet":{"name":"2 Oreos + glass of Fairlife milk","cal":210,"protein":8,"summary":"Saturday flex. The Fairlife makes it almost responsible."}},"dinner":{"name":"BBQ Brisket-Style Beef Sandwiches","wifeServing":{"cal":540,"protein":44},"philipServing":{"cal":680,"protein":60},"summary":"Slow-braised chuck roast in a smoky BBQ-coffee rub until fall-apart tender, piled high on toasted brioche buns with creamy horseradish coleslaw \u2014 Saturday showstopper","time":"4 hrs slow cooker (mostly hands-off)","flavorProfile":"American","ingredients":["3 lbs beef chuck roast","6 brioche buns","1 tbsp brown sugar","1 tsp instant coffee or espresso powder","1 tsp smoked paprika","1 tsp garlic powder","1 tsp onion powder","1 tsp cumin","\u00bd cup beef broth","\u00bc cup BBQ sauce + more to serve","3 cups coleslaw mix","3 tbsp mayo","1 tbsp apple cider vinegar","1 tsp prepared horseradish","Salt and pepper"],"steps":["Mix brown sugar, coffee, smoked paprika, garlic powder, onion powder, cumin, salt, pepper into dry rub. Coat beef generously.","Place beef in slow cooker with broth and BBQ sauce. Cook LOW 8 hrs or HIGH 4 hrs until falling apart tender.","Shred beef with two forks in the juices. Add more BBQ sauce and stir to coat.","Horseradish slaw: whisk mayo, apple cider vinegar, horseradish, salt. Toss with coleslaw mix. Refrigerate.","Lightly toast brioche buns. Pile with shredded beef and a generous spoonful of horseradish slaw.","Serve with extra BBQ sauce on the side."],"si":[{"name":"beef chuck roast","qty":3,"unit":"lbs","cat":"proteins"},{"name":"brioche buns","qty":6,"unit":"each","cat":"grains"},{"name":"beef broth","qty":0.5,"unit":"cup","cat":"pantry"},{"name":"BBQ sauce","qty":1,"unit":"bottle","cat":"pantry"},{"name":"coleslaw mix","qty":1,"unit":"bag","cat":"produce"},{"name":"horseradish prepared","qty":1,"unit":"jar","cat":"pantry"},{"name":"apple cider vinegar","qty":1,"unit":"tbsp","cat":"pantry"},{"name":"instant coffee","qty":1,"unit":"tsp","cat":"pantry"}],"substitutes":[{"name":"Smash Burgers + Sweet Potato Fries","flavorProfile":"American","wifeServing":{"cal":545,"protein":44},"summary":"Smashed 80/20 beef patties with melted cheddar on toasted brioche buns with special sauce \u2014 proper Saturday burger night","ingredients":["2 lbs 80/20 ground beef","6 brioche buns","6 slices cheddar cheese","1 bag (28 oz) frozen sweet potato fries","3 tbsp mayo","1 tbsp ketchup","1 tsp yellow mustard","Pickles","Shredded iceberg lettuce","Salt and pepper"],"steps":["Bake sweet potato fries per package, flipping halfway.","Make special sauce: whisk mayo, ketchup, mustard. Toast brioche buns.","Divide beef into 12 loose balls (2.5 oz each). Season with salt and pepper.","Heat cast iron over high heat until smoking. Smash 2 balls per serving flat immediately. Cook 2 min without touching.","Flip, add cheddar, cook 1 min. Stack two patties per bun.","Assemble: bottom bun, special sauce, pickles, lettuce, double patty, top bun. Serve with sweet potato fries."],"si":[{"name":"ground beef","qty":2,"unit":"lbs","cat":"proteins"},{"name":"brioche buns","qty":6,"unit":"each","cat":"grains"},{"name":"cheddar slices","qty":6,"unit":"each","cat":"dairy"},{"name":"sweet potato fries frozen","qty":1,"unit":"bag","cat":"produce"},{"name":"pickles","qty":1,"unit":"jar","cat":"pantry"}]},{"name":"Pulled Turkey Sliders with Honey Jalape\u00f1o Slaw","flavorProfile":"American","wifeServing":{"cal":495,"protein":42},"summary":"Smoky slow-cooked shredded turkey on slider buns with a sweet-spicy honey jalape\u00f1o coleslaw and dill pickles","ingredients":["3 lbs bone-in turkey breast or thighs","12 slider buns","\u00bd cup BBQ sauce","\u00bd cup chicken broth","3 cups coleslaw mix","3 tbsp mayo","1 tbsp honey","1 jalape\u00f1o, finely minced","1 tbsp apple cider vinegar","Dill pickle slices"],"steps":["Slow cooker: place turkey with BBQ sauce and broth. Cook LOW 6 hrs or HIGH 3 hrs. Shred with two forks.","Honey jalape\u00f1o slaw: whisk mayo, honey, jalape\u00f1o, and vinegar. Toss with coleslaw mix. Refrigerate.","Lightly toast slider buns. Pile with pulled turkey, slaw, and dill pickles."],"si":[{"name":"turkey breast bone-in","qty":3,"unit":"lbs","cat":"proteins"},{"name":"slider buns","qty":12,"unit":"each","cat":"grains"},{"name":"BBQ sauce","qty":0.5,"unit":"cup","cat":"pantry"},{"name":"chicken broth","qty":0.5,"unit":"cup","cat":"pantry"},{"name":"coleslaw mix","qty":1,"unit":"bag","cat":"produce"},{"name":"honey","qty":1,"unit":"tbsp","cat":"pantry"},{"name":"jalape\u00f1o","qty":1,"unit":"each","cat":"produce"},{"name":"apple cider vinegar","qty":1,"unit":"tbsp","cat":"pantry"},{"name":"pickles dill","qty":1,"unit":"jar","cat":"pantry"}]}]}},{"day":"Sunday","date":"May 10","wife":{"breakfast":{"name":"Veggie Egg Muffins (x3) + Fresh Fruit Salad","cal":355,"protein":26,"summary":"Baked egg muffins with spinach, diced turkey, and cheddar cheese \u2014 make-ahead friendly and a perfect easy Sunday start alongside fresh fruit"},"lunch":{"name":"Turkey Avocado BLT Sandwich on Ezekiel Bread","cal":420,"protein":36,"summary":"Sliced turkey, avocado, turkey bacon, romaine, and tomato on toasted Ezekiel bread with whole grain mustard and light mayo"},"snack":{"name":"Walnuts + 1 square dark chocolate","cal":180,"protein":4,"summary":"Omega-3s from walnuts and a little chocolate hit \u2014 satisfying and smart"},"eveningSnack":{"name":"Fairlife chocolate protein shake","cal":150,"protein":25,"summary":"Protein before bed to support overnight muscle recovery"}},"philip":{"brunch":{"name":"Big Breakfast Bowl \u2014 Eggs, Ground Turkey, Roasted Sweet Potato & Kale","cal":880,"protein":75,"summary":"Roasted sweet potato and kale base with seasoned ground turkey and 4 fried eggs \u2014 power bowl format to break the fast right"},"snack":{"name":"Fairlife whole milk + banana","cal":290,"protein":25,"summary":"Classic protein plus natural carbs \u2014 simple and effective mid-afternoon"},"sweet":{"name":"Honey + almond butter rice cakes (x2)","cal":155,"protein":4,"summary":"Crunchy, sweet, clean \u2014 honestly kind of addictive and clocks in before 7pm"}},"dinner":{"name":"Korean Doenjang Jjigae (Beef & Vegetable Stew)","wifeServing":{"cal":455,"protein":42},"philipServing":{"cal":580,"protein":55},"summary":"Rich Korean soybean paste stew with tender beef, zucchini, tofu, mushrooms, and potato \u2014 deeply savory and comforting, served over steamed rice","time":"35 min","flavorProfile":"Korean","ingredients":["1.5 lbs beef chuck or stew meat, cut into 1-inch cubes","2 cups dry jasmine rice","14 oz firm tofu, cubed","2 zucchini, sliced into half-moons","8 oz shiitake mushrooms, halved","1 medium potato, cubed","3 tbsp doenjang (Korean fermented soybean paste)","1 tbsp gochugaru (Korean red pepper flakes) \u2014 optional","4 garlic cloves, minced","3 cups beef or chicken broth","1 tbsp sesame oil","1 bunch green onions, sliced"],"steps":["Cook rice. Bring broth to a simmer in a medium pot.","Whisk in doenjang and gochugaru until dissolved. Add beef cubes and potato.","Simmer 20 min until beef is tender and potato is cooked through.","Add zucchini, mushrooms, and tofu. Simmer 8 more min.","Stir in garlic and sesame oil. Taste and adjust seasoning \u2014 doenjang is very salty so go easy on extra salt.","Serve over rice garnished with sliced green onions."],"si":[{"name":"beef stew meat","qty":1.5,"unit":"lbs","cat":"proteins"},{"name":"jasmine rice","qty":2,"unit":"cup","cat":"grains"},{"name":"firm tofu","qty":14,"unit":"oz","cat":"proteins"},{"name":"zucchini","qty":2,"unit":"each","cat":"produce"},{"name":"shiitake mushrooms","qty":8,"unit":"oz","cat":"produce"},{"name":"potato","qty":1,"unit":"each","cat":"produce"},{"name":"doenjang paste","qty":3,"unit":"tbsp","cat":"pantry"},{"name":"garlic","qty":4,"unit":"cloves","cat":"produce"},{"name":"beef broth","qty":3,"unit":"cup","cat":"pantry"},{"name":"sesame oil","qty":1,"unit":"tbsp","cat":"pantry"},{"name":"green onions","qty":1,"unit":"bunch","cat":"produce"}],"substitutes":[{"name":"Beef Short Rib Tacos with Kimchi Slaw","flavorProfile":"Korean","wifeServing":{"cal":490,"protein":43},"summary":"Tender braised short rib meat in corn tortillas with spicy kimchi slaw, pickled daikon, and sesame \u2014 Korean-Mexican fusion done right","ingredients":["2 lbs boneless beef short ribs or chuck","12 corn tortillas","2 cups kimchi, roughly chopped","2 cups coleslaw mix","2 tbsp mayo","1 tbsp sesame oil","3 tbsp soy sauce","2 tbsp brown sugar","3 garlic cloves, minced","1 tbsp ginger, grated","Pickled daikon (from Asian grocery or store-bought)","Sesame seeds and green onions"],"steps":["Slow cook short ribs with soy sauce, brown sugar, garlic, ginger, and \u00bd cup water on LOW 6\u20137 hrs. Shred beef.","Kimchi slaw: toss kimchi and coleslaw mix with mayo and sesame oil.","Warm corn tortillas. Load with shredded beef, kimchi slaw, and pickled daikon.","Top with sesame seeds and sliced green onions."],"si":[{"name":"beef short ribs","qty":2,"unit":"lbs","cat":"proteins"},{"name":"corn tortillas","qty":12,"unit":"each","cat":"grains"},{"name":"kimchi","qty":1,"unit":"jar","cat":"pantry"},{"name":"coleslaw mix","qty":1,"unit":"bag","cat":"produce"},{"name":"soy sauce","qty":3,"unit":"tbsp","cat":"pantry"},{"name":"brown sugar","qty":2,"unit":"tbsp","cat":"pantry"},{"name":"garlic","qty":3,"unit":"cloves","cat":"produce"},{"name":"ginger fresh","qty":1,"unit":"tbsp","cat":"produce"},{"name":"sesame oil","qty":1,"unit":"tbsp","cat":"pantry"},{"name":"green onions","qty":1,"unit":"bunch","cat":"produce"}]},{"name":"Ginger Scallion Beef Bowls","flavorProfile":"Chinese","wifeServing":{"cal":465,"protein":43},"summary":"Thinly sliced flank steak in a bright ginger-scallion sauce over jasmine rice with steamed broccoli \u2014 clean, aromatic, satisfying","ingredients":["1.5 lbs flank steak, thinly sliced","2 cups dry jasmine rice","2 broccoli crowns, cut into florets","1 bunch green onions, roughly chopped","2 tbsp fresh ginger, minced","3 tbsp vegetable oil","2 tbsp soy sauce","1 tbsp sesame oil","1 tbsp rice vinegar","1 tsp sugar","Salt and pepper"],"steps":["Make ginger scallion sauce: combine green onions, ginger, vegetable oil heated until sizzling hot (careful \u2014 it'll spit), soy sauce, sesame oil, rice vinegar, sugar, salt. Let sit 10 min.","Cook rice. Steam broccoli 4\u20135 min.","Season beef with salt and pepper. Sear in a very hot cast iron or wok, 1\u20132 min per side. Slice thin.","Serve beef and broccoli over rice. Drizzle ginger scallion sauce generously over everything."],"si":[{"name":"flank steak","qty":1.5,"unit":"lbs","cat":"proteins"},{"name":"jasmine rice","qty":2,"unit":"cup","cat":"grains"},{"name":"broccoli","qty":2,"unit":"each","cat":"produce"},{"name":"green onions","qty":2,"unit":"bunch","cat":"produce"},{"name":"ginger fresh","qty":2,"unit":"tbsp","cat":"produce"},{"name":"soy sauce","qty":2,"unit":"tbsp","cat":"pantry"},{"name":"sesame oil","qty":1,"unit":"tbsp","cat":"pantry"},{"name":"rice vinegar","qty":1,"unit":"tbsp","cat":"pantry"}]}]}}]};
+
+const POOL=[
+{name:"Honey Sriracha Chicken Bowls",flavorProfile:"Asian",wifeServing:{cal:460,protein:44},philipServing:{cal:580,protein:56},summary:"Baked chicken thighs in a sticky sweet-spicy glaze over rice with steamed broccoli",time:"30 min",ingredients:["2 lbs boneless chicken thighs","3 tbsp honey","2 tbsp sriracha","2 tbsp soy sauce","3 garlic cloves, minced","1 tbsp sesame oil","2 cups dry jasmine rice","2 broccoli crowns"],steps:["Whisk honey, sriracha, soy, garlic, sesame oil into a glaze.","Coat chicken. Bake 400°F 25 min until caramelized.","Steam broccoli 4–5 min. Cook rice.","Slice chicken. Build bowls. Drizzle with extra glaze."],si:[{name:"chicken thighs boneless",qty:2,unit:"lbs",cat:"proteins"},{name:"honey",qty:3,unit:"tbsp",cat:"pantry"},{name:"sriracha",qty:2,unit:"tbsp",cat:"pantry"},{name:"soy sauce",qty:2,unit:"tbsp",cat:"pantry"},{name:"garlic",qty:3,unit:"cloves",cat:"produce"},{name:"sesame oil",qty:1,unit:"tbsp",cat:"pantry"},{name:"jasmine rice",qty:2,unit:"cup",cat:"grains"},{name:"broccoli",qty:2,unit:"each",cat:"produce"}],substitutes:[{name:"Pineapple Chicken Stir-Fry",flavorProfile:"Asian",wifeServing:{cal:445,protein:42},summary:"Chicken, bell peppers, and pineapple in tangy sauce over rice",si:[{name:"chicken thighs boneless",qty:2,unit:"lbs",cat:"proteins"},{name:"jasmine rice",qty:2,unit:"cup",cat:"grains"},{name:"pineapple chunks",qty:1,unit:"cans",cat:"pantry"},{name:"bell peppers",qty:2,unit:"each",cat:"produce"},{name:"soy sauce",qty:3,unit:"tbsp",cat:"pantry"},{name:"garlic",qty:3,unit:"cloves",cat:"produce"}],ingredients:["2 lbs boneless chicken thighs, sliced","2 cups dry jasmine rice","1 can (20 oz) pineapple chunks, juice reserved","2 bell peppers (mixed colors), sliced","3 garlic cloves, minced","3 tbsp soy sauce","1 tbsp rice vinegar","1 tbsp sesame oil","1 tbsp cornstarch","2 tbsp vegetable oil"],steps:["Cook rice. Toss chicken slices with cornstarch and a pinch of salt.","Whisk together soy sauce, rice vinegar, sesame oil, and 3 tbsp reserved pineapple juice into sauce.","Stir-fry chicken in batches in hot oil over high heat, 3–4 min. Set aside.","Stir-fry bell peppers 2–3 min. Add garlic, cook 30 sec. Add pineapple chunks and sauce.","Return chicken. Toss together 1–2 min. Serve over rice."]},{name:"Garlic Sesame Turkey Noodles",flavorProfile:"Asian",wifeServing:{cal:455,protein:40},summary:"Soba noodles in sesame-garlic sauce with ground turkey",si:[{name:"ground turkey",qty:1.5,unit:"lbs",cat:"proteins"},{name:"soba noodles",qty:12,unit:"oz",cat:"grains"},{name:"soy sauce",qty:3,unit:"tbsp",cat:"pantry"},{name:"sesame oil",qty:2,unit:"tbsp",cat:"pantry"},{name:"garlic",qty:4,unit:"cloves",cat:"produce"},{name:"ginger fresh",qty:1,unit:"tbsp",cat:"produce"}],ingredients:["1.5 lbs lean ground turkey","12 oz soba noodles","3 tbsp soy sauce","2 tbsp sesame oil","1 tbsp rice vinegar","1 tbsp honey","4 garlic cloves, minced","1 tbsp fresh ginger, grated","3 green onions, sliced","Sesame seeds","Crushed red pepper flakes (optional)"],steps:["Cook soba noodles per package. Drain and rinse with cold water.","Brown turkey in skillet over medium-high, 5–6 min. Add garlic and ginger, cook 1 min.","Whisk soy sauce, sesame oil, rice vinegar, and honey into sauce. Pour over turkey. Stir to coat.","Add drained noodles to pan. Toss everything together over medium heat 2 min until warmed through.","Serve topped with green onions, sesame seeds, and red pepper flakes if using."]}]},
+{name:"Chicken Shawarma Bowls",flavorProfile:"Mediterranean",wifeServing:{cal:465,protein:44},philipServing:{cal:590,protein:56},summary:"Warmly spiced chicken over rice with creamy tzatziki and fresh cucumber-tomato salad",time:"30 min",ingredients:["2 lbs chicken thighs","Shawarma spices: cumin, paprika, turmeric, coriander, garlic powder","2 cups rice","1 cup Greek yogurt","1 cucumber","2 tomatoes","Juice of 1 lemon","Fresh dill","Pita bread"],steps:["Toss chicken with spices and oil. Marinate 15+ min.","Pan-sear or bake 425°F 20 min.","Tzatziki: grated cucumber + yogurt + lemon + dill.","Dice tomatoes and cucumber for salad.","Build bowls with rice, chicken, tzatziki, salad."],si:[{name:"chicken thighs boneless",qty:2,unit:"lbs",cat:"proteins"},{name:"jasmine rice",qty:2,unit:"cup",cat:"grains"},{name:"Greek yogurt plain",qty:1,unit:"cup",cat:"dairy"},{name:"cucumbers",qty:2,unit:"each",cat:"produce"},{name:"tomatoes",qty:2,unit:"each",cat:"produce"},{name:"lemons",qty:1,unit:"each",cat:"produce"},{name:"pita bread",qty:4,unit:"each",cat:"grains"},{name:"cumin",qty:1,unit:"tsp",cat:"pantry"},{name:"paprika",qty:1,unit:"tsp",cat:"pantry"},{name:"olive oil",qty:2,unit:"tbsp",cat:"pantry"}],substitutes:[{name:"Greek Turkey Bowls",flavorProfile:"Greek",wifeServing:{cal:455,protein:43},summary:"Ground turkey with oregano and lemon over rice with tzatziki and olives",si:[{name:"ground turkey",qty:1.5,unit:"lbs",cat:"proteins"},{name:"jasmine rice",qty:2,unit:"cup",cat:"grains"},{name:"Greek yogurt plain",qty:1,unit:"cup",cat:"dairy"},{name:"cucumbers",qty:2,unit:"each",cat:"produce"},{name:"lemons",qty:1,unit:"each",cat:"produce"},{name:"kalamata olives",qty:1,unit:"jar",cat:"pantry"}],ingredients:["1.5 lbs lean ground turkey","2 cups dry jasmine rice","1 cup plain Greek yogurt","1 cucumber (half grated for tzatziki, half diced for salad)","Juice of 1 lemon","2 garlic cloves, minced","1 tsp dried dill","1 tsp dried oregano","2 Roma tomatoes, diced","½ cup kalamata olives","2 tbsp olive oil"],steps:["Cook rice. Brown turkey with olive oil and oregano over medium-high, 5–6 min. Season with salt and pepper.","Make tzatziki: squeeze moisture from grated cucumber. Mix with yogurt, lemon juice, garlic, dill, and salt.","Dice remaining cucumber and tomatoes for salad.","Build bowls: rice, seasoned turkey, cucumber-tomato salad, kalamata olives, and a generous spoonful of tzatziki."]},{name:"Lemon Garlic Chicken Orzo",flavorProfile:"Mediterranean",wifeServing:{cal:465,protein:42},summary:"One-pan chicken, lemon, garlic, spinach, orzo, and Parmesan",si:[{name:"chicken thighs boneless",qty:2,unit:"lbs",cat:"proteins"},{name:"orzo pasta",qty:16,unit:"oz",cat:"grains"},{name:"baby spinach",qty:5,unit:"oz",cat:"produce"},{name:"lemons",qty:2,unit:"each",cat:"produce"},{name:"garlic",qty:4,unit:"cloves",cat:"produce"},{name:"olive oil",qty:2,unit:"tbsp",cat:"pantry"},{name:"chicken broth",qty:2,unit:"cup",cat:"pantry"}],ingredients:["2 lbs boneless chicken thighs","16 oz orzo pasta","4 cups low-sodium chicken broth","4 garlic cloves, minced","Juice and zest of 2 lemons","5 oz baby spinach","2 tbsp olive oil","½ tsp dried thyme","2 oz Parmesan, grated","Salt and pepper"],steps:["Season chicken with salt, pepper, and thyme. Sear in olive oil in a large deep skillet, 4 min per side. Remove and set aside.","Add garlic to same pan, cook 1 min. Add orzo and stir to coat in the oil.","Pour in chicken broth. Bring to a boil, then reduce heat and nestle chicken back in.","Cover and simmer 12 min until orzo is tender. Stir in spinach, lemon juice, and lemon zest.","Slice chicken. Serve orzo topped with chicken and grated Parmesan."]}]},
+{name:"Ground Turkey Bibimbap",flavorProfile:"Korean",wifeServing:{cal:470,protein:43},philipServing:{cal:595,protein:55},summary:"Colorful Korean rice bowl with spiced turkey, six sautéed vegetables, fried egg, and gochujang sauce",time:"35 min",ingredients:["1.5 lbs lean ground turkey","2 cups jasmine rice","2 carrots, julienned","2 cups baby spinach","1 cup bean sprouts","2 zucchini, julienned","4–5 eggs","2 tbsp gochujang","2 tbsp soy sauce","1 tbsp sesame oil","1 tbsp honey","3 garlic cloves"],steps:["Cook rice. Season turkey with soy sauce, garlic, sesame oil. Brown.","Sauté each vegetable separately in sesame oil.","Mix gochujang, honey, water into sauce.","Fry eggs sunny-side up.","Build bowls: rice, turkey, veggies, egg, sauce."],si:[{name:"ground turkey",qty:1.5,unit:"lbs",cat:"proteins"},{name:"jasmine rice",qty:2,unit:"cup",cat:"grains"},{name:"carrots",qty:2,unit:"each",cat:"produce"},{name:"baby spinach",qty:4,unit:"oz",cat:"produce"},{name:"bean sprouts",qty:1,unit:"bag",cat:"produce"},{name:"zucchini",qty:2,unit:"each",cat:"produce"},{name:"eggs",qty:5,unit:"each",cat:"dairy"},{name:"gochujang paste",qty:2,unit:"tbsp",cat:"pantry"},{name:"soy sauce",qty:2,unit:"tbsp",cat:"pantry"},{name:"sesame oil",qty:1,unit:"tbsp",cat:"pantry"},{name:"honey",qty:1,unit:"tbsp",cat:"pantry"},{name:"garlic",qty:3,unit:"cloves",cat:"produce"}],substitutes:[{name:"Korean Beef Bulgogi Bowl",flavorProfile:"Korean",wifeServing:{cal:480,protein:44},summary:"Marinated beef over rice with pickled veggies",si:[{name:"flank steak",qty:1.5,unit:"lbs",cat:"proteins"},{name:"jasmine rice",qty:2,unit:"cup",cat:"grains"},{name:"soy sauce",qty:3,unit:"tbsp",cat:"pantry"},{name:"sesame oil",qty:1,unit:"tbsp",cat:"pantry"},{name:"garlic",qty:3,unit:"cloves",cat:"produce"},{name:"ginger fresh",qty:1,unit:"tbsp",cat:"produce"},{name:"cucumbers",qty:2,unit:"each",cat:"produce"},{name:"rice vinegar",qty:2,unit:"tbsp",cat:"pantry"}],ingredients:["1.5 lbs flank steak, very thinly sliced","2 cups dry jasmine rice","3 tbsp soy sauce","1 tbsp sesame oil","1 tbsp honey","3 garlic cloves, minced","1 tbsp fresh ginger, grated","2 cucumbers, thinly sliced","2 tbsp rice vinegar","Green onions and sesame seeds to serve"],steps:["Whisk soy sauce, sesame oil, honey, garlic, and ginger into marinade. Add beef slices and toss to coat. Marinate 20+ min.","Cook rice. Quick pickle cucumbers: toss with rice vinegar and a pinch of salt. Let sit 10 min.","Heat a wok or large skillet over very high heat. Cook marinated beef in batches, 1–2 min per side — work fast over very high heat.","Serve beef over rice with pickled cucumbers. Top with green onions and sesame seeds."]},{name:"Japchae Glass Noodle Bowl",flavorProfile:"Korean",wifeServing:{cal:455,protein:38},summary:"Glass noodles with beef, spinach, mushrooms, and sesame",si:[{name:"flank steak",qty:1,unit:"lbs",cat:"proteins"},{name:"glass noodles",qty:8,unit:"oz",cat:"grains"},{name:"baby spinach",qty:4,unit:"oz",cat:"produce"},{name:"mushrooms",qty:8,unit:"oz",cat:"produce"},{name:"soy sauce",qty:3,unit:"tbsp",cat:"pantry"},{name:"sesame oil",qty:2,unit:"tbsp",cat:"pantry"},{name:"garlic",qty:3,unit:"cloves",cat:"produce"}],ingredients:["1 lb flank steak, thinly sliced","8 oz Korean sweet potato glass noodles (dangmyeon)","5 oz baby spinach","8 oz shiitake mushrooms, sliced","3 garlic cloves, minced","3 tbsp soy sauce","2 tbsp sesame oil","1 tbsp honey","Sesame seeds and green onions to serve"],steps:["Soak glass noodles in warm water 30 min, then cook in boiling water 6 min. Drain and cut into shorter lengths.","Marinate beef in 1 tbsp soy sauce and 1 tbsp sesame oil. Stir-fry over very high heat 2 min. Set aside.","Sauté mushrooms in remaining sesame oil 3–4 min. Wilt spinach in same pan 1 min. Add garlic, cook 30 sec.","Whisk remaining soy sauce, sesame oil, garlic, and honey into sauce.","Combine noodles, beef, mushrooms, and spinach in pan. Pour sauce over. Toss over medium heat 2 min. Top with sesame seeds and green onions."]}]},
+{name:"Beef & Broccoli Stir-Fry",flavorProfile:"Chinese",wifeServing:{cal:475,protein:44},philipServing:{cal:600,protein:56},summary:"Tender sliced flank steak and crisp broccoli in savory brown sauce over jasmine rice",time:"20 min",ingredients:["1.5 lbs flank steak, thinly sliced","2 broccoli crowns","2 cups rice","3 tbsp soy sauce","2 tbsp oyster sauce","1 tbsp sesame oil","1 tbsp cornstarch","4 garlic cloves","1 tbsp fresh ginger"],steps:["Toss beef with cornstarch.","Whisk soy, oyster sauce, sesame oil, garlic, ginger into sauce.","Sear beef in batches 1–2 min per side. Set aside.","Stir-fry broccoli 3–4 min. Add sauce and beef. Toss 1–2 min.","Serve over rice."],si:[{name:"flank steak",qty:1.5,unit:"lbs",cat:"proteins"},{name:"broccoli",qty:2,unit:"each",cat:"produce"},{name:"jasmine rice",qty:2,unit:"cup",cat:"grains"},{name:"soy sauce",qty:3,unit:"tbsp",cat:"pantry"},{name:"oyster sauce",qty:2,unit:"tbsp",cat:"pantry"},{name:"sesame oil",qty:1,unit:"tbsp",cat:"pantry"},{name:"cornstarch",qty:1,unit:"tbsp",cat:"pantry"},{name:"garlic",qty:4,unit:"cloves",cat:"produce"},{name:"ginger fresh",qty:1,unit:"tbsp",cat:"produce"}],substitutes:[{name:"Mongolian Ground Beef",flavorProfile:"Chinese",wifeServing:{cal:465,protein:43},summary:"Sweet-savory Mongolian sauce with ground beef and green onions over rice",si:[{name:"ground beef",qty:1.5,unit:"lbs",cat:"proteins"},{name:"jasmine rice",qty:2,unit:"cup",cat:"grains"},{name:"soy sauce",qty:3,unit:"tbsp",cat:"pantry"},{name:"brown sugar",qty:2,unit:"tbsp",cat:"pantry"},{name:"garlic",qty:3,unit:"cloves",cat:"produce"},{name:"ginger fresh",qty:1,unit:"tbsp",cat:"produce"},{name:"green onions",qty:1,unit:"bunch",cat:"produce"}],ingredients:["1.5 lbs lean ground beef","2 cups dry jasmine rice","3 tbsp soy sauce","2 tbsp brown sugar","1 tbsp sesame oil","3 garlic cloves, minced","1 tbsp fresh ginger, grated","1 bunch green onions, sliced into 1-inch pieces","Sesame seeds"],steps:["Cook rice. Brown ground beef in skillet over medium-high, 5–6 min. Drain excess fat.","Add garlic and ginger, cook 1 min.","Stir in soy sauce, brown sugar, and sesame oil. Cook 2–3 min until sauce thickens and glazes the beef.","Add green onion pieces. Toss and cook 1 more min.","Serve over rice. Top with sesame seeds and extra green onions."]},{name:"Sesame Ginger Chicken",flavorProfile:"Asian",wifeServing:{cal:455,protein:44},summary:"Chicken in ginger-sesame marinade over bok choy and rice",si:[{name:"chicken thighs boneless",qty:2,unit:"lbs",cat:"proteins"},{name:"jasmine rice",qty:2,unit:"cup",cat:"grains"},{name:"bok choy",qty:2,unit:"each",cat:"produce"},{name:"soy sauce",qty:3,unit:"tbsp",cat:"pantry"},{name:"sesame oil",qty:2,unit:"tbsp",cat:"pantry"},{name:"ginger fresh",qty:1,unit:"tbsp",cat:"produce"},{name:"garlic",qty:3,unit:"cloves",cat:"produce"}],ingredients:["2 lbs boneless chicken thighs","2 cups dry jasmine rice","2 heads bok choy, halved","3 tbsp soy sauce","2 tbsp sesame oil","1 tbsp fresh ginger, grated","3 garlic cloves, minced","1 tbsp honey","1 tbsp rice vinegar","Sesame seeds to serve"],steps:["Cook rice. Whisk soy sauce, sesame oil, ginger, garlic, honey, and rice vinegar into marinade.","Coat chicken thighs in marinade. Cook in a skillet over medium-high, 5–6 min per side until cooked through and slightly caramelized.","Steam or sauté bok choy with a drizzle of sesame oil and pinch of salt, 3–4 min.","Rest chicken 5 min, then slice.","Serve sliced chicken and bok choy over rice. Drizzle with any pan sauce and sesame seeds."]}]}
+];;
+
+
+
+// ── INGREDIENT SCALING ENGINE ─────────────────────────────
+const UF={'\u00bd':0.5,'\u00bc':0.25,'\u00be':0.75,'\u2153':0.333,'\u2154':0.667,'\u215b':0.125,'1\u00bc':1.25,'1\u00bd':1.5,'1\u00be':1.75,'2\u00bd':2.5,'3\u00bd':3.5};
+function parseLeadingQty(s){
+  for(const[f,v]of Object.entries(UF)){if(s.startsWith(f))return{qty:v,rest:s.slice(f.length)};}
+  const m=s.match(/^(\d+\.?\d*)\s*([\u00bc\u00bd\u00be\u2153\u2154\u215b])?/);
+  if(!m||!m[1])return null;
+  let qty=parseFloat(m[1]);
+  if(m[2])qty+=(UF[m[2]]||0);
+  return{qty,rest:s.slice(m[0].length)};
+}
+function fmtScaled(n){
+  const r=Math.round(n*4)/4;
+  const m={0.25:'\u00bc',0.33:'\u2153',0.5:'\u00bd',0.75:'\u00be',1.25:'1\u00bc',1.5:'1\u00bd',1.75:'1\u00be',2.5:'2\u00bd',3.5:'3\u00bd'};
+  return m[r]!==undefined?m[r]:(Number.isInteger(r)?String(r):String(r));
+}
+function scaleIngredient(str,scale){
+  if(!scale||scale===1)return str;
+  const p=parseLeadingQty(str.trim());
+  if(!p)return str;
+  return fmtScaled(p.qty*scale)+p.rest;
+}
+
+// ── UNIT COMBINING ENGINE ─────────────────────────────────
+function normKey(raw){
+  const STRIP=/\b(lean|fresh|dried|frozen|organic|plain|full.fat|boneless|skinless|baby|small|large|medium|ripe|low.sodium|unsweetened|store.bought|canned|jarred|shredded|sliced|minced|grated|crumbled|crushed|chopped|diced|additional|extra)\b/gi;
+  return raw.toLowerCase()
+    .replace(/garlic\s+cloves?/gi,'garlic').replace(/cloves?\s+of\s+garlic/gi,'garlic')
+    .replace(/\d+%/g,'').replace(STRIP,'').replace(/[^a-z0-9\s]/g,' ')
+    .split(/\s+/).filter(Boolean)
+    .map(w=>w.length>3&&w.endsWith('s')&&!w.endsWith('ss')?w.slice(0,-1):w)
+    .sort().join('_');
+}
+const UB={tsp:1,tbsp:3,cup:48,oz:1,lb:16,lbs:16,each:1,clove:1,cloves:1};
+function uGroup(u){if(['tsp','tbsp','cup'].includes(u))return'vol';if(['oz','lb','lbs'].includes(u))return'wt';if(['each','clove','cloves'].includes(u))return'ct';return'pkg';}
+function toBase(q,u){return(UB[u]||1)*q;}
+function fmtVol(b){if(b>=48)return{q:Math.round(b/48*4)/4,u:'cup'};if(b>=3)return{q:Math.round(b/3*4)/4,u:'tbsp'};return{q:Math.round(b*2)/2,u:'tsp'};}
+function fmtWt(b){if(b>=16)return{q:Math.round(b/16*4)/4,u:'lbs'};return{q:Math.round(b),u:'oz'};}
+function fmtNum(n){const m={0.25:'¼',0.33:'⅓',0.5:'½',0.75:'¾',1.25:'1¼',1.5:'1½',1.75:'1¾',2.5:'2½',3.5:'3½',4.5:'4½'};return m[n]!==undefined?m[n]:(Number.isInteger(n)?String(n):String(Math.round(n*10)/10));}
+function displayItem(item,scale){
+  scale=scale||1;
+  const g=uGroup(item.unit);let q=item.qty*scale,u=item.unit;
+  if(g==='vol'){const r=fmtVol(toBase(q,u));q=r.q;u=r.u;}
+  else if(g==='wt'){const r=fmtWt(toBase(q,u));q=r.q;u=r.u;}
+  else if(g==='ct'){q=Math.round(q);}
+  if(u==='each'||u==='clove'||u==='cloves')return fmtNum(q)+' '+item.name;
+  if(u==='check stock')return item.name+' — check stock';
+  return fmtNum(q)+' '+u+' '+item.name;
+}
+function displayRef(item,scale){
+  scale=scale||1;
+  const g=uGroup(item.unit);let q=item.qty*scale,u=item.unit;
+  if(g==='vol'){const r=fmtVol(toBase(q,u));q=r.q;u=r.u;}
+  else if(g==='wt'){const r=fmtWt(toBase(q,u));q=r.q;u=r.u;}
+  else if(g==='ct'){q=Math.round(q);}
+  if(u==='check stock')return'check stock';
+  return fmtNum(q)+' '+u;
+}
+function combineItems(items){
+  const map=new Map();
+  items.forEach(item=>{
+    const g=uGroup(item.unit);
+    const key=normKey(item.name)+'|'+(g==='pkg'?item.unit:g);
+    if(map.has(key)){
+      const ex=map.get(key);
+      if(g==='vol'||g==='wt'){const b=toBase(ex.qty,ex.unit)+toBase(item.qty,item.unit);const r=g==='vol'?fmtVol(b):fmtWt(b);ex.qty=r.q;ex.unit=r.u;}
+      else if(g==='ct'){ex.qty=Math.round(ex.qty+item.qty);}
+      else if(ex.unit===item.unit){ex.qty+=item.qty;}
+    } else {map.set(key,{...item});}
+  });
+  return Array.from(map.values()).sort((a,b)=>a.name.localeCompare(b.name));
+}
+
+// ── STATE ─────────────────────────────────────────────────
+let ST={
+  // Auth
+  user:null, userDoc:null, household:null,
+  // Plan
+  plan:null, weekSlug:null,
+  // History
+  histMode:false, histPlan:null, histSlug:null, histList:[],
+  // User data
+  favs:[], favMap:{}, pantryItems:new Set(), gc:{}, portionScale:1.0,
+  // UI
+  showPhilip:(localStorage.getItem('ot-philip')||'1')==='1', cur:0, openRec:{}, openSw:{}, tab:'week',
+};
+
+// ── UTILS ─────────────────────────────────────────────────
+function planToSlug(weekOf){
+  const months={January:'01',February:'02',March:'03',April:'04',May:'05',June:'06',July:'07',August:'08',September:'09',October:'10',November:'11',December:'12'};
+  const parts=weekOf.split(/[\s,]+/).filter(Boolean);
+  const mon=parts[0],day=parts[1].padStart(2,'0'),yr=parts[2]||parts[3];
+  return `${yr}-${months[mon]||'01'}-${day}`;
+}
+function showError(msg){
+  showScreen('screen-loading');
+  const panel=document.getElementById('debug-panel');
+  const txt=document.getElementById('debug-msg');
+  if(panel)panel.style.display='block';
+  if(txt)txt.textContent=msg;
+  console.error('OurTable Error:',msg);
+}
+
+function showScreen(id){
+  ['screen-loading','screen-auth','screen-onboard','app'].forEach(s=>{
+    const el=document.getElementById(s);if(el)el.style.display=(s===id?'flex':'none');
+  });
+  if(id==='app'){document.getElementById('app').style.display='block';}
+}
+function lsGet(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+
+// ── AUTH ──────────────────────────────────────────────────
+// signInWithPopup: works on desktop Chrome and most browsers.
+// signInWithRedirect routes through firebaseapp.com which loses
+// cross-origin sessionStorage on GitHub Pages — don't use it.
+// iOS Safari popup fix: popups work when called from a direct click event.
+
+async function initAuth(){
+  showScreen('screen-loading');
+  // Check persisted session (handles returning users who are already signed in)
+  try{
+    const user = await new Promise(resolve=>{
+      const unsub = auth.onAuthStateChanged(u=>{ unsub(); resolve(u); });
+    });
+    if(user){
+      ST.user = user;
+      await loadUserData();
+    } else {
+      showScreen('screen-auth');
+    }
+  } catch(e){
+    showError('initAuth failed: '+e.code+' — '+e.message);
+  }
+}
+
+async function signInGoogle(){
+  try{
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({prompt:'select_account'});
+    // signInWithPopup works reliably on desktop and most mobile browsers
+    const result = await auth.signInWithPopup(provider);
+    if(result && result.user){
+      ST.user = result.user;
+      await loadUserData();
+    }
+  } catch(e){
+    if(e.code==='auth/popup-blocked'){
+      showError('Popup blocked.\n\nFix: Allow popups for qubecompanies.github.io in your browser settings, then try again.\n\nOr open this page in Chrome on your phone.');
+    } else if(e.code==='auth/popup-closed-by-user'){
+      showScreen('screen-auth'); // User dismissed — just show sign-in screen again
+    } else if(e.code==='auth/cancelled-popup-request'){
+      showScreen('screen-auth'); // Multiple clicks — ignore
+    } else {
+      showError('Sign-in error: '+e.code+'\n'+e.message);
+    }
+  }
+}
+
+initAuth();
+async function doSignOut(){
+  await auth.signOut();
+  ST={...ST,user:null,userDoc:null,household:null,plan:null,favs:[],favMap:{},pantryItems:new Set(),gc:{},portionScale:1.0,histList:[],histMode:false};
+  showScreen('screen-auth');
+}
+
+// ── ONBOARDING ────────────────────────────────────────────
+function obTab(t){
+  document.getElementById('ob-create').style.display=t==='create'?'block':'none';
+  document.getElementById('ob-join').style.display=t==='join'?'block':'none';
+  document.getElementById('ob-code-display').style.display='none';
+  document.querySelectorAll('.ob-tab').forEach((b,i)=>b.classList.toggle('on',i===(t==='create'?0:1)));
+}
+function genCode(){return Math.random().toString(36).substring(2,8).toUpperCase();}
+async function createHousehold(){
+  const name=(document.getElementById('ob-name').value||'').trim();
+  const errEl=document.getElementById('ob-err-create');
+  if(!name){errEl.textContent='Please enter a family name.';return;}
+  errEl.textContent='Creating…';
+  try{
+    const code=genCode();
+    const hhRef=db.collection('households').doc();
+    await hhRef.set({
+      familyName:name, inviteCode:code,
+      memberUids:[ST.user.uid], adminUids:[ST.user.uid],
+      createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await db.collection('users').doc(ST.user.uid).set({
+      displayName:ST.user.displayName,email:ST.user.email,photoURL:ST.user.photoURL||'',
+      householdId:hhRef.id, role:'admin',
+      favorites:[], pantryItems:[],
+      createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    document.getElementById('ob-code-val').textContent=code;
+    document.getElementById('ob-create').style.display='none';
+    document.getElementById('ob-code-display').style.display='block';
+    errEl.textContent='';
+    // Also load household into state
+    ST.userDoc={householdId:hhRef.id,role:'admin',favorites:[],pantryItems:[]};
+    ST.household={id:hhRef.id,familyName:name,inviteCode:code,adminUids:[ST.user.uid],memberUids:[ST.user.uid]};
+  } catch(e){errEl.textContent='Error: '+e.message;}
+}
+async function joinHousehold(){
+  const code=(document.getElementById('ob-code').value||'').trim().toUpperCase();
+  const errEl=document.getElementById('ob-err-join');
+  if(code.length!==6){errEl.textContent='Enter the 6-character code.';return;}
+  errEl.textContent='Looking up code…';
+  try{
+    const snap=await db.collection('households').where('inviteCode','==',code).limit(1).get();
+    if(snap.empty){errEl.textContent='Code not found. Check with your family admin.';return;}
+    const hhDoc=snap.docs[0];
+    const hhData=hhDoc.data();
+    // Add user to household
+    await hhDoc.ref.update({memberUids:firebase.firestore.FieldValue.arrayUnion(ST.user.uid)});
+    // Create user doc
+    await db.collection('users').doc(ST.user.uid).set({
+      displayName:ST.user.displayName,email:ST.user.email,photoURL:ST.user.photoURL||'',
+      householdId:hhDoc.id, role:'admin', // both are admins per your choice
+      favorites:[], pantryItems:[],
+      createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    ST.userDoc={householdId:hhDoc.id,role:'admin',favorites:[],pantryItems:[]};
+    ST.household={id:hhDoc.id,...hhData};
+    errEl.textContent='';
+    await loadAndRender();
+  } catch(e){errEl.textContent='Error: '+e.message;}
+}
+async function finishOnboard(){
+  await loadAndRender();
+}
+
+// ── DATA LOADING ──────────────────────────────────────────
+async function loadUserData(){
+  showScreen('screen-loading');
+  try{
+    const userRef=db.collection('users').doc(ST.user.uid);
+    const userSnap=await userRef.get();
+    if(!userSnap.exists){
+      showScreen('screen-onboard');return;
+    }
+    ST.userDoc=userSnap.data();
+    if(!ST.userDoc.householdId){
+      showScreen('screen-onboard');return;
+    }
+    await loadAndRender();
+  } catch(e){
+    if(e.code==='permission-denied'){
+      showError('Firestore permission denied ('+e.message+'). Check that your Firestore rules have been deployed in the Firebase console → Firestore → Rules.');
+    } else if(e.code==='unavailable'){
+      showError('Firestore is offline or unavailable. Check your internet connection and try again. ('+e.message+')');
+    } else {
+      showError('loadUserData: '+e.code+' — '+e.message+'\n\nStack: '+(e.stack||'').slice(0,200));
+    }
+  }
+}
+
+async function loadAndRender(){
+  showScreen('screen-loading');
+  try{
+    const hhSnap=await db.collection('households').doc(ST.userDoc.householdId).get();
+    ST.household={id:hhSnap.id,...(hhSnap.data()||{})};
+    ST.favs=ST.userDoc.favorites||[];
+    ST.favMap=Object.fromEntries(ST.favs.map(f=>[f.name,true]));
+    ST.pantryItems=new Set(ST.userDoc.pantryItems||[]);
+    await loadCurrentPlan();
+    await loadWeekData(ST.weekSlug);
+    await loadHistoryList();
+    const fb=lsGet('ot-fb');if(fb){const el=document.getElementById('wk-fb');if(el)el.value=fb;}
+    showScreen('app');
+    document.getElementById('family-name-lbl').textContent=ST.household.familyName?'– '+ST.household.familyName:'';
+    const codeEl=document.getElementById('settings-invite-code');
+    if(codeEl)codeEl.textContent=ST.household.inviteCode||'——';
+    const uiEl=document.getElementById('settings-user-info');
+    if(uiEl)uiEl.textContent=(ST.user.displayName||ST.user.email);
+    renderUserAvatar();
+    renderPantryGrid();
+    // Sync Philip toggle to persisted preference
+    const ptog=document.getElementById('ptog');
+    if(ptog)ptog.checked=ST.showPhilip;
+    renderAll();
+  } catch(e){
+    showError('loadAndRender: '+e.code+' — '+e.message+'\n\nStack: '+(e.stack||'').slice(0,300));
+  }
+}
+
+async function loadCurrentPlan(){
+  const embedded=PLAN;
+  const embSlug=planToSlug(embedded.weekOf);
+  const plansRef=db.collection('households').doc(ST.household.id).collection('plans');
+  try{
+    const latestSnap=await plansRef.orderBy('createdAt','desc').limit(1).get();
+    if(!latestSnap.empty){
+      const latestSlug=latestSnap.docs[0].id;
+      if(latestSlug>embSlug){  // strictly newer only — equal slug means use freshly embedded plan
+        ST.plan=JSON.parse(JSON.stringify(latestSnap.docs[0].data().plan));
+        ST.weekSlug=latestSlug;
+        return;
+      }
+    }
+    // Embedded plan is newest — archive it
+    ST.plan=JSON.parse(JSON.stringify(embedded));
+    ST.weekSlug=embSlug;
+    await archivePlan(embedded,embSlug);
+  } catch(e){
+    ST.plan=JSON.parse(JSON.stringify(embedded));
+    ST.weekSlug=embSlug;
+  }
+}
+
+async function archivePlan(plan,slug){
+  try{
+    await db.collection('households').doc(ST.household.id).collection('plans').doc(slug).set({
+      plan:JSON.parse(JSON.stringify(plan)),
+      weekOf:plan.weekOf, weekSlug:slug,
+      createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+      pushedBy:ST.user.uid
+    });
+  } catch(e){console.error('Archive failed:',e);}
+}
+
+async function loadWeekData(slug){
+  try{
+    const snap=await db.collection('users').doc(ST.user.uid).collection('weekData').doc(slug).get();
+    if(!snap.exists)return;
+    const wd=snap.data();
+    ST.gc=wd.gc||{};
+    ST.portionScale=wd.portionScale||1.0;
+    // Apply user ratings and notes to plan days
+    if(wd.ratings){wd.ratings.forEach((r,i)=>{if(ST.plan.days[i]&&r){ST.plan.days[i].rating=r.rating||null;ST.plan.days[i].notes=r.notes||'';}});}
+    // Apply swapped dinners
+    if(wd.swappedDinners){wd.swappedDinners.forEach((d,i)=>{if(d&&ST.plan.days[i])ST.plan.days[i].dinner=JSON.parse(JSON.stringify(d));});}
+    const sel=document.getElementById('portion-sel');
+    if(sel){
+      const opts=['0.4','0.6','1.0','1.6','2.0'];
+      const closest=opts.reduce((a,b)=>Math.abs(parseFloat(b)-ST.portionScale)<Math.abs(parseFloat(a)-ST.portionScale)?b:a,'1.0');
+      sel.value=closest;
+    }
+  } catch(e){console.error('loadWeekData error:',e);}
+}
+
+async function saveWeekData(){
+  if(!ST.user||!ST.weekSlug)return;
+  const ratings=ST.plan.days.map(d=>({rating:d.rating||null,notes:d.notes||''}));
+  const swappedDinners=ST.plan.days.map(d=>{
+    if(!PLAN.days)return null;
+    const orig=PLAN.days.find(od=>od.day===d.day);
+    return (orig&&orig.dinner.name===d.dinner.name)?null:JSON.parse(JSON.stringify(d.dinner));
+  });
+  try{
+    await db.collection('users').doc(ST.user.uid).collection('weekData').doc(ST.weekSlug).set({
+      gc:ST.gc, portionScale:ST.portionScale, ratings, swappedDinners,
+      updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch(e){console.error('saveWeekData error:',e);}
+}
+
+async function loadHistoryList(){
+  try{
+    const snap=await db.collection('households').doc(ST.household.id).collection('plans').orderBy('createdAt','desc').get();
+    ST.histList=snap.docs.map(d=>({slug:d.id,weekOf:d.data().weekOf,plan:d.data().plan}));
+  } catch(e){ST.histList=[];}
+}
+
+// ── PANTRY ────────────────────────────────────────────────
+const PANTRY_ITEMS=[
+  'soy sauce','sesame oil','olive oil','avocado oil','vegetable oil','mirin','rice vinegar',
+  'fish sauce','oyster sauce','honey','mayo','almond butter','peanut butter',
+  'apple cider vinegar','BBQ sauce','brown sugar','chia seeds','hummus','tahini',
+  'capers','pesto','Caesar dressing','hoisin sauce','salsa','walnuts','protein powder',
+  'sriracha','gochujang paste','panko breadcrumbs','Italian seasoning','taco seasoning','fajita seasoning'
+];
+function renderPantryGrid(){
+  const grid=document.getElementById('pantry-grid');if(!grid)return;
+  grid.innerHTML=PANTRY_ITEMS.map(name=>{
+    const k=normKey(name);
+    const on=ST.pantryItems.has(k);
+    return `<div class="pantry-item ${on?'on':''}" onclick="togglePantryItem('${k}','${esc(name)}',this)">
+      <input type="checkbox" ${on?'checked':''} onclick="event.stopPropagation()">
+      <span class="pantry-name">${esc(name)}</span>
+    </div>`;
+  }).join('');
+}
+async function togglePantryItem(k,name,el){
+  if(ST.pantryItems.has(k)){ST.pantryItems.delete(k);}else{ST.pantryItems.add(k);}
+  el.classList.toggle('on',ST.pantryItems.has(k));
+  const cb=el.querySelector('input');if(cb)cb.checked=ST.pantryItems.has(k);
+  // Save to Firestore
+  try{
+    await db.collection('users').doc(ST.user.uid).update({pantryItems:Array.from(ST.pantryItems)});
+  } catch(e){console.error(e);}
+  if(ST.tab==='grocery')renderGrocery();
+}
+
+// ── PORTION SCALING ───────────────────────────────────────
+function setPortionScale(val){
+  ST.portionScale=parseFloat(val)||1.0;
+  saveWeekData();
+  if(ST.tab==='grocery')renderGrocery();
+}
+
+// ── GROCERY ───────────────────────────────────────────────
+function buildGroceryList(){
+  const scale=ST.portionScale;
+  const activePlan=ST.histMode?ST.histPlan:ST.plan;
+  const dinnerRaw=[];
+  activePlan.days.forEach(day=>{(day.dinner.si||[]).forEach(item=>dinnerRaw.push({...item,qty:item.qty}));});
+  const dinnerCombined=combineItems(dinnerRaw);
+  const dinnerIdx=new Map();
+  dinnerCombined.forEach(item=>{const k=normKey(item.name);if(!dinnerIdx.has(k))dinnerIdx.set(k,[]);dinnerIdx.get(k).push(item);});
+  const output=[];const absorbed=new Set();
+  STAPLES.forEach(staple=>{
+    const sk=normKey(staple.name);const sg=uGroup(staple.unit);
+    const matches=dinnerIdx.get(sk)||[];
+    const entry={...staple};
+    matches.forEach(dm=>{
+      const dg=uGroup(dm.unit);const absKey=sk+'|'+dg;
+      if(absorbed.has(absKey))return;
+      if(dg===sg){
+        const base=toBase(entry.qty,entry.unit)*scale+toBase(dm.qty,dm.unit)*scale;
+        const r=sg==='vol'?fmtVol(base):sg==='wt'?fmtWt(base):{q:Math.round(base),u:entry.unit};
+        entry.qty=r.q;entry.unit=r.u;
+      } else {
+        const refStr=displayRef(dm,scale)+' '+dm.unit+' in recipes';
+        entry.ref=(entry.ref?entry.ref+', ':'')+refStr;
+      }
+      absorbed.add(absKey);
+    });
+    output.push(entry);
+  });
+  dinnerCombined.forEach(item=>{
+    const dk=normKey(item.name);const dg=uGroup(item.unit);
+    const absKey=dk+'|'+dg;
+    if(!absorbed.has(absKey))output.push({...item,qty:item.qty*scale});
+  });
+  const cats=['proteins','produce','grains','dairy','pantry','flex'];
+  const grouped={};cats.forEach(c=>{grouped[c]=[];});
+  output.forEach(item=>{const c=item.cat||'pantry';(grouped[c]||(grouped.pantry)).push(item);});
+  return grouped;
+}
+const CAT_LABELS={proteins:'🥩 Proteins',produce:'🥦 Produce & Vegetables',grains:'🌾 Grains, Bread & Pasta',dairy:'🥛 Dairy & Eggs',pantry:'🧄 Pantry & Spices',flex:'⚡ Flex & Philip\'s Extras'};
+function renderGrocery(){
+  const grouped=buildGroceryList();
+  const cats=['proteins','produce','grains','dairy','pantry','flex'];
+  const total=cats.reduce((s,c)=>s+(grouped[c]||[]).length,0);
+  const chk=Object.values(ST.gc).filter(Boolean).length;
+  const activePlan=ST.histMode?ST.histPlan:ST.plan;
+  const scaleLabel=ST.portionScale!==1.0?` · ${ST.portionScale}x portions`:'';
+  document.getElementById('g-sub').textContent=`${chk} of ${total} items · Week of ${activePlan.weekOf}${scaleLabel}`;
+  const bar=document.getElementById('g-bar');
+  if(bar)bar.style.width=(total?Math.round(chk/total*100):0)+'%';
+  let html='';
+  cats.forEach(cat=>{
+    const items=grouped[cat]||[];if(!items.length)return;
+    html+=`<div class="gcat">${CAT_LABELS[cat]}</div>`;
+    items.forEach(item=>{
+      const label=displayItem(item,1); // qty already scaled in buildGroceryList
+      const key=normKey(item.name)+'_'+cat;
+      const done=!!ST.gc[key];
+      const inPantry=ST.pantryItems.has(normKey(item.name));
+      const gcState=done||(inPantry&&ST.gc[key]===undefined)?true:done;
+      // Auto-check pantry items that haven't been explicitly unchecked
+      const isChecked=done||(inPantry&&ST.gc[key]===undefined);
+      const refHtml=item.ref?`<span class="g-ref"> · ${esc(item.ref)}</span>`:'';
+      const noteHtml=item.note?`<span class="g-note">${esc(item.note)}</span>`:'';
+      const pantryHtml=inPantry&&!item.note?`<span class="g-pantry-badge">pantry</span>`:'';
+      html+=`<div class="grow">
+        <input type="checkbox" class="gcb" ${isChecked?'checked':''} data-key="${esc(key)}" onchange="toggleGroc(this)">
+        <div class="g-label">
+          <span class="g-name ${isChecked?'done':''}">${esc(label)}${pantryHtml}${refHtml}</span>
+          ${noteHtml}
+        </div>
+      </div>`;
+    });
+  });
+  document.getElementById('g-body').innerHTML=html;
+}
+function toggleGroc(el){
+  const key=el.dataset.key;ST.gc[key]=el.checked;
+  const nameEl=el.parentElement.querySelector('.g-name');
+  if(nameEl)nameEl.classList.toggle('done',el.checked);
+  // Update progress
+  const grouped=buildGroceryList();const cats=['proteins','produce','grains','dairy','pantry','flex'];
+  const total=cats.reduce((s,c)=>s+(grouped[c]||[]).length,0);
+  const chk=Object.values(ST.gc).filter(Boolean).length;
+  const activePlan=ST.histMode?ST.histPlan:ST.plan;
+  document.getElementById('g-sub').textContent=`${chk} of ${total} items · Week of ${activePlan.weekOf}`;
+  const bar=document.getElementById('g-bar');if(bar)bar.style.width=(total?Math.round(chk/total*100):0)+'%';
+  saveWeekData();
+}
+function clearGroc(){
+  ST.gc={};saveWeekData();renderGrocery();
+}
+
+// ── HISTORY ───────────────────────────────────────────────
+function renderHistory(){
+  const el=document.getElementById('hist-body');if(!el)return;
+  if(!ST.histList.length){
+    el.innerHTML=`<div class="empty"><div class="ei">📅</div><div class="et">No history yet</div><div class="es">Each week gets archived here automatically after you open the app.</div></div>`;return;
+  }
+  el.innerHTML=`<div class="hist-list">${ST.histList.map(hw=>{
+    const isCurrent=hw.slug===ST.weekSlug;
+    const dinners=hw.plan.days.map(d=>{const fl=flv(d.dinner.flavorProfile);return`<span class="hist-pill" style="background:${fl.bg};color:${fl.c}">${esc(d.dinner.name)}</span>`;}).join('');
+    return`<div class="hist-card ${isCurrent?'current-wk':''}" onclick="loadHistoryWeek('${hw.slug}')">
+      <div class="hist-wk">${isCurrent?'📍 ':''}<strong>Week of ${esc(hw.weekOf)}</strong>${isCurrent?' — Current week':''}</div>
+      <div class="hist-dinners">${dinners}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+async function loadHistoryWeek(slug){
+  if(slug===ST.weekSlug){exitHistory();switchTab(null,'nb-week');ST.tab='week';return;}
+  const entry=ST.histList.find(h=>h.slug===slug);
+  if(!entry)return;
+  ST.histMode=true;ST.histPlan=JSON.parse(JSON.stringify(entry.plan));ST.histSlug=slug;
+  const banner=document.getElementById('hist-banner');
+  const ttl=document.getElementById('hist-banner-ttl');
+  if(banner)banner.style.display='flex';
+  if(ttl)ttl.textContent='📅 Viewing week of '+entry.weekOf+' (read-only)';
+  ST.tab='week';switchTab(null,'nb-week');
+  renderAll();
+}
+function exitHistory(){
+  ST.histMode=false;ST.histPlan=null;ST.histSlug=null;
+  const banner=document.getElementById('hist-banner');if(banner)banner.style.display='none';
+  renderAll();
+}
+
+// ── NAV ───────────────────────────────────────────────────
+function switchTab(dtabEl,bnavId){
+  const t=ST.tab;
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+t).classList.add('active');
+  document.querySelectorAll('.dtab').forEach(d=>d.classList.remove('on'));
+  if(dtabEl)dtabEl.classList.add('on');
+  else{const tabs={week:0,grocery:1,favorites:2,history:3,settings:4};document.querySelectorAll('.dtab')[tabs[t]]?.classList.add('on');}
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  const bmap={week:'nb-week',grocery:'nb-groc',favorites:'nb-fav',history:'nb-hist',settings:'nb-set'};
+  const bid=bnavId||bmap[t];if(bid)document.getElementById(bid)?.classList.add('on');
+  if(t==='grocery')renderGrocery();
+  if(t==='favorites')renderFavorites();
+  if(t==='history'){renderHistory();}
+}
+function togglePhilip(){
+  ST.showPhilip=document.getElementById('ptog').checked;
+  localStorage.setItem('ot-philip', ST.showPhilip?'1':'0');
+  renderAll();
+}
+
+// ── PILLS ─────────────────────────────────────────────────
+function renderPills(){
+  const days=['Mo','Tu','We','Th','Fr','Sa','Su'];
+  const activePlan=ST.histMode?ST.histPlan:ST.plan;
+  document.getElementById('pills').innerHTML=activePlan.days.map((d,i)=>{
+    const r=d.rating||'';const rc=r==='loved'?'rl':r==='meh'?'rm':r==='skip'?'rs':'';
+    return`<button class="dpill ${i===ST.cur?'on':''} ${rc}" onclick="selDay(${i})">
+      <span class="dp-d">${days[i]}</span><span class="dp-n">${d.date.split(' ')[1]}</span><div class="dp-dot"></div>
+    </button>`;
+  }).join('');
+}
+function selDay(i){ST.cur=i;renderPills();document.getElementById('mob-day').innerHTML=buildCard((ST.histMode?ST.histPlan:ST.plan).days[i],i);}
+
+// ── BUILD DAY CARD ────────────────────────────────────────
+function buildCard(day,i){
+  const activePlan=ST.histMode?ST.histPlan:ST.plan;
+  const d=day.dinner;const fl=flv(d.flavorProfile);
+  const w=day.wife;const p=day.philip;
+  const ws=d.wifeServing;const ps=d.philipServing;
+  const rat=day.rating||'';const isF=!!ST.favMap[d.name];
+  const ro=!!ST.openRec[i];const so=!!ST.openSw[i];
+  const wC=Math.round((w.breakfast.cal||0)+(w.lunch.cal||0)+(w.snack.cal||0)+(w.eveningSnack.cal||0)+(ws.cal||0));
+  const wP=Math.round((w.breakfast.protein||0)+(w.lunch.protein||0)+(w.snack.protein||0)+(w.eveningSnack.protein||0)+(ws.protein||0));
+  const pC=Math.round((p.brunch.cal||0)+(p.snack.cal||0)+(ps.cal||0)+(p.sweet.cal||0));
+  const pP=Math.round((p.brunch.protein||0)+(p.snack.protein||0)+(ps.protein||0)+(p.sweet.protein||0));
+  const histMode=ST.histMode;
+  const scaleNote=ST.portionScale!==1.0?`<div class="scaled-note">📐 Grocery quantities scaled to ${ST.portionScale}x servings</div>`:'';
+  return`<div class="dc">
+  <div class="dch"><span class="dcd">${esc(day.day)}</span><span class="dcdt">${esc(day.date)}</span></div>
+  <div class="dcb">
+    <div><div class="mlbl">🥞 Breakfast</div><div class="mn">${esc(w.breakfast.name)}</div><div class="ms">${esc(w.breakfast.summary)}</div><div class="mac">${w.breakfast.cal} cal · ${w.breakfast.protein}g protein</div></div>
+    <div><div class="mlbl">🥗 Lunch</div><div class="mn">${esc(w.lunch.name)}</div><div class="ms">${esc(w.lunch.summary)}</div><div class="mac">${w.lunch.cal} cal · ${w.lunch.protein}g protein</div></div>
+    <div><div class="mlbl">🍎 Snack</div><div class="mn">${esc(w.snack.name)}</div><div class="ms">${esc(w.snack.summary)}</div><div class="mac">${w.snack.cal} cal · ${w.snack.protein}g protein</div></div>
+    <div class="rule"></div>
+    <div>
+      <div class="mlbl" style="margin-bottom:6px;">🍽 Dinner <span style="font-size:9px;color:var(--t3);">FAMILY</span></div>
+      <div class="din">
+        <div class="din-top"><div class="din-name">${esc(d.name)}</div><span class="ftag" style="background:${fl.bg};color:${fl.c}">${esc(d.flavorProfile)}</span></div>
+        <div class="din-desc">${esc(d.summary)}</div>
+        <div class="din-meta"><span>Her: ${ws.cal} cal / ${ws.protein}g protein</span><span>⏱ ${esc(d.time)}</span></div>
+        ${scaleNote}
+        <div class="din-acts no-print">
+          <button class="ab ${ro?'on':''}" onclick="toggleRec(${i})">📖 ${ro?'Hide':'Recipe'}</button>
+          ${!histMode?`<button class="ab ${so?'on':''}" onclick="toggleSw(${i})">🔄 ${so?'Hide':'Swap'}</button>`:''}
+          <button class="ab ${isF?'fon':''}" onclick="toggleFav(${i})">${isF?'★ Saved':'☆ Save'}</button>
+          ${!histMode?`<button class="ab" onclick="surpriseMe(${i})">✨</button>`:''}
+        </div>
+        <div class="rec ${ro?'open':''}">
+          ${ST.portionScale!==1?`<div style="background:var(--gl);border:1px solid var(--gm);border-radius:8px;padding:7px 10px;margin-bottom:8px;font-size:12px;font-weight:700;color:var(--gd);">⚖️ Scaled to ${ST.portionScale}× servings — quantities adjusted below</div>`:''}
+          <div class="rl">Ingredients</div><ul>${(d.ingredients||[]).map(x=>`<li>${esc(scaleIngredient(x,ST.portionScale))}</li>`).join('')}</ul>
+          <div class="rl">Steps</div><ol>${(d.steps||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ol>
+        </div>
+        ${so&&!histMode?`<div class="swaps open"><div class="sw-ttl">Swap tonight's dinner:</div>${(d.substitutes||[]).map((s,si)=>`
+          <div class="sw-item"><div class="sw-l"><div class="sw-n">${esc(s.name)}</div><div class="sw-d">${esc(s.summary)} · ${(s.wifeServing||{}).cal||0} cal / ${(s.wifeServing||{}).protein||0}g</div></div>
+          <button class="use-btn" onclick="swapDinner(${i},${si})">Use this</button></div>`).join('')}</div>`:''}
+      </div>
+    </div>
+    <div><div class="mlbl">🌙 Evening snack</div><div class="mn">${esc(w.eveningSnack.name)}</div><div class="ms">${esc(w.eveningSnack.summary)}</div><div class="mac">${w.eveningSnack.cal} cal · ${w.eveningSnack.protein}g protein</div></div>
+    <div class="tots">
+      <div class="tot"><span class="tv">${wC}</span><span class="tl">Her calories</span></div>
+      <div class="tot"><span class="tv">${wP}g</span><span class="tl">Her protein</span></div>
+    </div>
+    <div class="phil ${ST.showPhilip?'open':''}">
+      <span class="pbadge">👤 Philip's meals</span>
+      <div style="display:flex;flex-direction:column;gap:9px;">
+        <div><div class="mlbl">Brunch (11am)</div><div class="mn">${esc(p.brunch.name)}</div><div class="ms">${esc(p.brunch.summary)}</div><div class="mac">${p.brunch.cal} cal · ${p.brunch.protein}g protein</div></div>
+        <div><div class="mlbl">Snack</div><div class="mn">${esc(p.snack.name)}</div><div class="mac">${p.snack.cal} cal · ${p.snack.protein}g protein</div></div>
+        <div><div class="mlbl">Dinner serving</div><div class="mn">${esc(d.name)}</div><div class="mac">${ps.cal} cal · ${ps.protein}g protein</div></div>
+        <div><div class="mlbl">Sweet treat (before 7pm)</div><div class="mn">${esc(p.sweet.name)}</div><div class="ms">${esc(p.sweet.summary)}</div><div class="mac">${p.sweet.cal} cal · ${p.sweet.protein}g protein</div></div>
+        <div class="tots" style="margin-top:2px;">
+          <div class="tot"><span class="tv">${pC}</span><span class="tl">His calories</span></div>
+          <div class="tot"><span class="tv">${pP}g</span><span class="tl">His protein</span></div>
+        </div>
+      </div>
+    </div>
+    ${!histMode?`<div class="rat-row no-print">
+      <div class="rat-lbl">How was dinner? 👇</div>
+      <div class="rat">
+        <button class="rb ${rat==='loved'?'loved':''}" onclick="setRating(${i},'loved')">😍 Loved it</button>
+        <button class="rb ${rat==='meh'?'meh':''}" onclick="setRating(${i},'meh')">😐 Meh</button>
+        <button class="rb ${rat==='skip'?'skip':''}" onclick="setRating(${i},'skip')">👎 Skip it</button>
+      </div>
+    </div>
+    <div class="no-print"><div class="mlbl" style="margin-bottom:3px;">📝 Notes</div>
+    <textarea class="nta" data-day="${i}" onblur="saveNote(this)" placeholder="e.g. Kids have practice">${esc(day.notes||'')}</textarea></div>`:''}
+  </div></div>`;
+}
+
+function renderAll(){
+  const activePlan=ST.histMode?ST.histPlan:ST.plan;
+  document.getElementById('hdr-wk').textContent='Week of '+activePlan.weekOf+(ST.histMode?' 📅':'');
+  renderPills();
+  document.getElementById('mob-day').innerHTML=buildCard(activePlan.days[ST.cur],ST.cur);
+  document.getElementById('dsk-grid').innerHTML=activePlan.days.map((d,i)=>buildCard(d,i)).join('');
+  if(ST.tab==='grocery')renderGrocery();
+}
+
+// ── ACTIONS ───────────────────────────────────────────────
+function toggleRec(i){ST.openRec[i]=!ST.openRec[i];renderAll();}
+function toggleSw(i){ST.openSw[i]=!ST.openSw[i];renderAll();}
+
+async function toggleFav(i){
+  const activePlan=ST.histMode?ST.histPlan:ST.plan;
+  const d=activePlan.days[i].dinner;
+  if(ST.favMap[d.name]){
+    ST.favs=ST.favs.filter(f=>f.name!==d.name);delete ST.favMap[d.name];
+  } else if(!ST.favMap[d.name]){
+    ST.favs.push({name:d.name,summary:d.summary,flavorProfile:d.flavorProfile,wifeServing:JSON.parse(JSON.stringify(d.wifeServing)),philipServing:JSON.parse(JSON.stringify(d.philipServing||{}))});
+    ST.favMap[d.name]=true;
+  }
+  try{await db.collection('users').doc(ST.user.uid).update({favorites:ST.favs});}catch(e){}
+  updateFavBadge();renderAll();
+}
+
+async function setRating(i,r){
+  if(ST.histMode)return;
+  ST.plan.days[i].rating=ST.plan.days[i].rating===r?null:r;
+  if(ST.plan.days[i].rating==='loved'){
+    const d=ST.plan.days[i].dinner;
+    if(!ST.favMap[d.name]){
+      ST.favs.push({name:d.name,summary:d.summary,flavorProfile:d.flavorProfile,wifeServing:JSON.parse(JSON.stringify(d.wifeServing)),philipServing:JSON.parse(JSON.stringify(d.philipServing||{}))});
+      ST.favMap[d.name]=true;
+      try{await db.collection('users').doc(ST.user.uid).update({favorites:ST.favs});}catch(e){}
+      updateFavBadge();
+    }
+  }
+  saveWeekData();
+  renderAll();
+}
+
+function swapDinner(di,si2){
+  if(ST.histMode)return;
+  const orig=JSON.parse(JSON.stringify(ST.plan.days[di].dinner));
+  const sub=orig.substitutes[si2];
+  ST.plan.days[di].dinner={
+    name:sub.name,flavorProfile:sub.flavorProfile,summary:sub.summary,
+    wifeServing:JSON.parse(JSON.stringify(sub.wifeServing)),
+    philipServing:sub.philipServing?JSON.parse(JSON.stringify(sub.philipServing)):JSON.parse(JSON.stringify(orig.philipServing||{})),
+    time:sub.time||orig.time,
+    ingredients:JSON.parse(JSON.stringify(sub.ingredients||orig.ingredients)),
+    steps:JSON.parse(JSON.stringify(sub.steps||orig.steps)),
+    si:JSON.parse(JSON.stringify(sub.si||orig.si||[])),
+    substitutes:JSON.parse(JSON.stringify([...orig.substitutes.filter((_,x)=>x!==si2),{name:orig.name,flavorProfile:orig.flavorProfile,wifeServing:orig.wifeServing,summary:orig.summary,si:orig.si||[]}]))
+  };
+  ST.plan.days[di].rating=null;ST.openRec[di]=false;ST.openSw[di]=false;
+  saveWeekData();renderAll();
+}
+
+function surpriseMe(i){
+  if(ST.histMode)return;
+  // Build set of recently used dinners: current week + last 3 weeks from history
+  const recentDinners=new Set(ST.plan.days.map(d=>d.dinner.name));
+  // ST.histList[0] is current week, [1]-[3] are the previous 3 weeks
+  ST.histList.slice(1,4).forEach(hw=>{
+    (hw.plan?.days||[]).forEach(d=>{if(d.dinner?.name)recentDinners.add(d.dinner.name);});
+  });
+  const av=POOL.filter(p=>!recentDinners.has(p.name));
+  if(!av.length){
+    alert("All bonus dinners were served recently. Ask Philip to generate a fresh plan with new options.");
+    return;
+  }
+  ST.plan.days[i].dinner=JSON.parse(JSON.stringify(av[Math.floor(Math.random()*av.length)]));
+  ST.plan.days[i].rating=null;ST.openRec[i]=false;ST.openSw[i]=false;
+  saveWeekData();renderAll();
+}
+
+function saveNote(el){
+  if(ST.histMode)return;
+  const i=parseInt(el.dataset.day);
+  if(!isNaN(i)&&ST.plan){ST.plan.days[i].notes=el.value;saveWeekData();}
+}
+
+// ── FAVORITES ─────────────────────────────────────────────
+function renderFavorites(){
+  const el=document.getElementById('fav-body');if(!el)return;
+  if(!ST.favs.length){
+    el.innerHTML=`<div class="empty"><div class="ei">⭐</div><div class="et">No favorites yet</div><div class="es">Rate a dinner "Loved it" or tap ☆ Save on any dinner card.</div></div>`;return;
+  }
+  el.innerHTML=`<div class="fgrid">${ST.favs.map((f,i)=>{const fl=flv(f.flavorProfile);return`<div class="fcard"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:7px;margin-bottom:4px;"><div class="fn">${esc(f.name)}</div><span class="ftag" style="background:${fl.bg};color:${fl.c}">${esc(f.flavorProfile)}</span></div><div class="fd">${esc(f.summary)}</div><div class="fm">Her: ${(f.wifeServing||{}).cal||0} cal · ${(f.wifeServing||{}).protein||0}g protein</div><button class="fdel" onclick="removeFav(${i})">Remove</button></div>`;}).join('')}</div>`;
+}
+async function removeFav(i){
+  const n=ST.favs[i].name;delete ST.favMap[n];ST.favs.splice(i,1);
+  try{await db.collection('users').doc(ST.user.uid).update({favorites:ST.favs});}catch(e){}
+  renderFavorites();updateFavBadge();
+}
+function updateFavBadge(){
+  const n=ST.favs.length;
+  const dt=document.getElementById('fav-dtab');if(dt)dt.textContent=`⭐ Favorites${n?` (${n})`:''}`;
+  const nb=document.getElementById('nb-fav');if(nb)nb.innerHTML=`<div class="ni">⭐</div>Favs${n?` (${n})`:''}`;
+}
+
+// ── USER AVATAR ───────────────────────────────────────────
+function renderUserAvatar(){
+  const wrap=document.getElementById('user-avatar-wrap');if(!wrap)return;
+  if(ST.user&&ST.user.photoURL){
+    wrap.innerHTML=`<img class="avatar" src="${ST.user.photoURL}" alt="You" onclick="ST.tab='settings';switchTab(null,'nb-set')" title="Settings">`;
+  } else {
+    const initials=(ST.user&&ST.user.displayName)?ST.user.displayName.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase():'P';
+    wrap.innerHTML=`<div class="avatar-placeholder" onclick="ST.tab='settings';switchTab(null,'nb-set')" title="Settings">${initials}</div>`;
+  }
+}
+
+// ── SEND MODAL ────────────────────────────────────────────
+function calcNextWeek(){
+  const months={January:'01',February:'02',March:'03',April:'04',May:'05',June:'06',July:'07',August:'08',September:'09',October:'10',November:'11',December:'12'};
+  const mnames=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const mabbr=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dnames=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  const parts=ST.plan.weekOf.split(/[\s,]+/).filter(Boolean);
+  const d=new Date(parseInt(parts[2]||parts[3]),Object.values(months).indexOf((months[parts[0]]||'04'))-0,parseInt(parts[1]));
+  d.setDate(d.getDate()+7);
+  const dates=dnames.map((_,i)=>{const dd=new Date(d);dd.setDate(d.getDate()+i);return{day:dnames[i],date:mabbr[dd.getMonth()]+' '+dd.getDate()};});
+  return{weekOf:mnames[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear(),dates};
+}
+// buildClaudePrompt is async — pulls 4 weeks of Firestore dinner history
+async function buildClaudePrompt(){
+  const fb=(document.getElementById('wk-fb')||{}).value||'';
+  const next=calcNextWeek();
+
+  // Current week ratings
+  const ratings=ST.plan.days.map(d=>`${d.day}: ${d.dinner.name} → ${d.rating==='loved'?'❤️ Loved it':d.rating==='meh'?'😐 Meh':d.rating==='skip'?'👎 Skip it':'— not rated'}`).join('\n');
+
+  // Last week's breakfasts and lunches for day-aware rotation
+  // Collect last 2 weeks of breakfasts and lunches for day-aware rotation
+  const recentMealWeeks=ST.histList.slice(1,3); // indices 1 & 2 = last 2 weeks
+  let bfastSection='';
+  let lunchSection='';
+  if(recentMealWeeks.length>0){
+    const bfastLines=recentMealWeeks.map(hw=>{
+      const days=(hw.plan?.days||[]).map(d=>`${d.day}: ${d.wife?.breakfast?.name||'—'}`).join(', ');
+      return`Week of ${hw.weekOf}: ${days}`;
+    }).join('\n');
+    const lunchLines=recentMealWeeks.map(hw=>{
+      const days=(hw.plan?.days||[]).map(d=>`${d.day}: ${d.wife?.lunch?.name||'—'}`).join(', ');
+      return`Week of ${hw.weekOf}: ${days}`;
+    }).join('\n');
+    bfastSection=`\nBREAKFAST HISTORY (last 2 weeks) — avoid repeating on the SAME weekday across these weeks (e.g. if Monday had Greek Yogurt Parfait either week, don't put it on Monday again — but Wednesday is fine):\n${bfastLines}`;
+    lunchSection=`\nLUNCH HISTORY (last 2 weeks) — same weekday-avoidance rule:\n${lunchLines}`;
+  }
+
+  // Loved-it favorites for occasional rotation
+  const lovedDinners=ST.favs.map(f=>f.name).slice(0,10);
+
+  // ── DINNER HISTORY: last 4 weeks from Firestore ──────────
+  // histList[0] = current week, [1]...[4] = previous 4 weeks
+  const histWeeks=ST.histList.slice(0,5); // current + up to 4 prior
+  const allRecentDinners=new Set();
+  const historyLines=[];
+
+  histWeeks.forEach((hw,idx)=>{
+    const dinners=(hw.plan?.days||[]).map(d=>d.dinner?.name).filter(Boolean);
+    dinners.forEach(n=>allRecentDinners.add(n));
+    if(idx===0){
+      // Current week already in ratings section — skip
+    } else {
+      historyLines.push(`Week of ${hw.weekOf}: ${dinners.join(', ')}`);
+    }
+  });
+
+  // Remove from variety list any dinner also in favorites
+  // (favorites are ok to bring back — they should just not repeat within 4 weeks)
+  const avoidList=Array.from(allRecentDinners).sort();
+
+  const histSection=historyLines.length>0
+    ? `\nDINNER HISTORY — past ${historyLines.length} week(s):\n${historyLines.join('\n')}`
+    : '';
+
+  const strictAvoidSection=avoidList.length>0
+    ? `\nSTRICT VARIETY RULE — these ${avoidList.length} dinners appeared in the past 4 weeks. NONE of them may appear in the new plan — not as main dinners, not as substitutes, not suggested anywhere:\n${avoidList.map(n=>'• '+n).join('\n')}`
+    : '';
+
+  const favSection=lovedDinners.length>0
+    ? `\nFAMILY FAVORITES (loved-it rated — ok to bring back once they clear the 4-week window):\n${lovedDinners.join(', ')}`
+    : '';
+
+  return `Please generate a new 7-day family meal plan for the week of ${next.weekOf}.
+
+LAST WEEK'S DINNER RATINGS:
+${ratings}
+${fb?'\nFEEDBACK FROM THIS WEEK:\n'+fb:''}${bfastSection}${lunchSection}${histSection}${strictAvoidSection}${favSection}
+
+FAMILY PROFILE:
+- Wife (43F, 155lb, goal 120-135lb, 1500-1700 cal/day, 125-135g protein, eats 9am-8:30pm, perimenopause, HIIT 5x/week): needs breakfast + lunch + snack + dinner + eveningSnack
+- Philip (44M, 180lb, goal 165-170lb, 2000-2200 cal/day, 165-170g protein, eats 11am-7pm IF, HIIT 5x/week): needs brunch + snack + dinner + sweet
+- 3 kids share dinner only. NO shellfish. Proteins: chicken, turkey, beef (occasional fish for wife).
+- Flavors: Korean BBQ, Tex-Mex, Asian stir-fry, Mediterranean, American — vary across the week.
+- 90% whole foods, 10% flex (Fairlife shakes, protein bars, Poppi sodas). Saturday = slightly indulgent dinner. Philip needs a daily sweet treat before 7pm.
+- Generate genuinely creative dinners — explore the full range of each cuisine, not just the most common dishes.
+
+Days: ${next.dates.map(d=>d.day+' '+d.date).join(', ')}
+
+CRITICAL: Reply with ONLY a valid JSON object. No explanation, no markdown, no code fences.
+Start your entire response with: {"weekOf":
+
+Each dinner must include a "si" array of structured ingredients for the grocery list:
+"si":[{"name":"ingredient name","qty":1.5,"unit":"lbs","cat":"proteins"}]
+Valid units: lbs, oz, cup, tbsp, tsp, each, bunch, pint, bag, bottle, jar, cans, packet, loaf, gallon
+Valid cats: proteins, produce, grains, dairy, pantry, flex
+
+Each dinner needs 2 substitutes. EVERY substitute must include its own full "ingredients" array and "steps" array — not just a summary. The family needs to be able to cook any substitute directly from the app.
+
+Structure: {"weekOf":"${next.weekOf}","days":[{"day":"Monday","date":"${next.dates[0].date}","wife":{"breakfast":{"name":"","cal":0,"protein":0,"summary":""},"lunch":{"name":"","cal":0,"protein":0,"summary":""},"snack":{"name":"","cal":0,"protein":0,"summary":""},"eveningSnack":{"name":"","cal":0,"protein":0,"summary":""}},"philip":{"brunch":{"name":"","cal":0,"protein":0,"summary":""},"snack":{"name":"","cal":0,"protein":0,"summary":""},"sweet":{"name":"","cal":0,"protein":0,"summary":""}},"dinner":{"name":"","wifeServing":{"cal":0,"protein":0},"philipServing":{"cal":0,"protein":0},"summary":"","time":"","flavorProfile":"","ingredients":[],"steps":[],"si":[],"substitutes":[{"name":"","flavorProfile":"","wifeServing":{"cal":0,"protein":0},"summary":"","ingredients":[],"steps":[],"si":[]},{"name":"","flavorProfile":"","wifeServing":{"cal":0,"protein":0},"summary":"","ingredients":[],"steps":[],"si":[]}]}},...]}`;
+}
+
+async function showSendModal(){
+  // Show modal immediately with loading state
+  document.getElementById('copy-confirm').style.display='none';
+  document.getElementById('send-modal').style.display='flex';
+  document.body.style.overflow='hidden';
+  const ta=document.getElementById('prompt-ta');
+  if(ta)ta.value='⏳ Building your prompt — pulling dinner history…';
+  // Build prompt async (pulls Firestore history)
+  try{
+    const prompt=await buildClaudePrompt();
+    if(ta)ta.value=prompt;
+  } catch(e){
+    if(ta)ta.value='Error building prompt: '+e.message+'\n\nClose and try again.';
+  }
+}
+function closeModal(){document.getElementById('send-modal').style.display='none';document.body.style.overflow='';}
+function closeModalOutside(e){if(e.target===document.getElementById('send-modal'))closeModal();}
+function copyPrompt(){
+  const el=document.getElementById('prompt-ta');if(!el)return;
+  try{navigator.clipboard.writeText(el.value).then(()=>{document.getElementById('copy-confirm').style.display='block';});}
+  catch(e){el.select();document.execCommand('copy');document.getElementById('copy-confirm').style.display='block';}
+}
+function saveFb(){const el=document.getElementById('wk-fb');lsSet('ot-fb',el?el.value:'');}
+
+// ── INIT ──────────────────────────────────────────────────
+// Auth state observer handles everything — no explicit init() needed
+</script>
+</body>
+</html>
