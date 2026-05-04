@@ -861,26 +861,26 @@ async function loadAndRender(){
 }
 
 async function loadCurrentPlan(){
+  // The embedded plan in the HTML is ALWAYS the current week.
+  // Firestore is the archive — we only read it for history, never for the current plan.
+  // This means pushing a new index.html is all Philip needs to do — no Firestore deletes required.
   const embedded=PLAN;
   const embSlug=planToSlug(embedded.weekOf);
-  const plansRef=db.collection('households').doc(ST.household.id).collection('plans');
+  ST.plan=JSON.parse(JSON.stringify(embedded));
+  ST.weekSlug=embSlug;
+  // Archive to Firestore only if this week isn't already stored
+  // (prevents overwriting ratings/swaps she may have already made)
   try{
-    const latestSnap=await plansRef.orderBy('createdAt','desc').limit(1).get();
-    if(!latestSnap.empty){
-      const latestSlug=latestSnap.docs[0].id;
-      if(latestSlug>embSlug){  // strictly newer only — equal slug means use freshly embedded plan
-        ST.plan=JSON.parse(JSON.stringify(latestSnap.docs[0].data().plan));
-        ST.weekSlug=latestSlug;
-        return;
-      }
+    const existing=await db.collection('households').doc(ST.household.id)
+      .collection('plans').doc(embSlug).get();
+    if(!existing.exists){
+      await archivePlan(embedded,embSlug);
+      console.log('New week archived to Firestore:',embSlug);
+    } else {
+      console.log('Week already in Firestore — using embedded plan, keeping stored ratings:',embSlug);
     }
-    // Embedded plan is newest — archive it
-    ST.plan=JSON.parse(JSON.stringify(embedded));
-    ST.weekSlug=embSlug;
-    await archivePlan(embedded,embSlug);
   } catch(e){
-    ST.plan=JSON.parse(JSON.stringify(embedded));
-    ST.weekSlug=embSlug;
+    console.warn('Could not check/archive plan:',e.message);
   }
 }
 
