@@ -398,13 +398,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
     <div class="scard">
       <div class="srow">
+        <div class="slbl">📅 Next week</div>
+        <div id="next-week-label" class="sdesc" style="font-size:15px;font-weight:600;color:var(--green);margin-bottom:4px;">Loading…</div>
+        <div class="sdesc" style="margin-bottom:4px;font-size:12px;color:var(--t2);" id="prompt-gen-note">Tap "Send to Philip" to generate the update request for next week.</div>
+      </div>
+      <div class="srow">
+        <div class="slbl">⭐ Rate this week's dinners</div>
+        <div class="sdesc" style="margin-bottom:10px;font-size:12px;">Your ratings here feed directly into next week's plan — loved meals come back, skipped ones are avoided.</div>
+        <div id="quick-rate-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+      </div>
+      <div class="srow">
         <div class="slbl">💬 Feedback for next week</div>
         <div class="sdesc" style="margin-bottom:8px;">What did you love? What to skip? Anything you'd like more of?</div>
         <textarea id="wk-fb" class="nta" placeholder="e.g. Korean bowls were a hit! Tuesday felt too heavy. More Mediterranean please." onblur="saveFb()" style="min-height:80px;margin-top:6px;"></textarea>
       </div>
       <div class="srow">
         <div class="slbl">📤 Done for the week?</div>
-        <div class="sdesc" style="margin-bottom:12px;">Tap below to send your ratings and feedback to Philip. He'll have your new plan ready for the weekend — you don't need to do anything else.</div>
+        <div class="sdesc" style="margin-bottom:12px;">Tap below to build the update request and send it to Philip. He'll paste it into Claude and have your new plan ready — you don't need to do anything else.</div>
         <button class="slink" onclick="showSendModal()" style="width:100%;justify-content:center;font-size:15px;padding:13px;">Send to Philip ✉️</button>
       </div>
     </div>
@@ -1138,7 +1148,7 @@ function switchTab(dtabEl,bnavId){
   const bid=bnavId||bmap[t];if(bid)document.getElementById(bid)?.classList.add('on');
   if(t==='grocery')renderGrocery();
   if(t==='favorites')renderFavorites();
-  if(t==='history'){renderHistory();}
+  if(t==='history'){renderHistory();}  if(t==='settings'){renderSettings();}
 }
 function togglePhilip(){
   ST.showPhilip=document.getElementById('ptog').checked;
@@ -1234,6 +1244,39 @@ function buildCard(day,i){
   </div></div>`;
 }
 
+function renderSettings(){
+  // Next week label
+  try{
+    const next=calcNextWeek();
+    const el=document.getElementById('next-week-label');
+    if(el)el.textContent='Week ending '+next.weekEnding;
+  }catch(e){}
+  // Quick rate list — show all 7 dinners with tap-to-rate
+  const rl=document.getElementById('quick-rate-list');
+  if(!rl)return;
+  rl.innerHTML=ST.plan.days.map((d,i)=>{
+    const r=d.rating||'';
+    const rLabel=r==='loved'?'❤️':r==='meh'?'😐':r==='skip'?'👎':'·';
+    const name=d.dinner?.name||'—';
+    const short=name.length>38?name.slice(0,36)+'…':name;
+    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface);border-radius:10px;border:1px solid var(--bdr);">
+      <span style="font-size:11px;font-weight:600;color:var(--t2);min-width:28px;">${d.day.slice(0,3)}</span>
+      <span style="flex:1;font-size:13px;color:var(--t1);">${esc(short)}</span>
+      <div style="display:flex;gap:4px;">
+        <button onclick="setRatingFromSettings(${i},'loved')" style="background:${r==='loved'?'#ffeded':'var(--surface)'};border:1px solid ${r==='loved'?'#e88':'var(--bdr)'};border-radius:8px;padding:4px 8px;font-size:14px;cursor:pointer;">❤️</button>
+        <button onclick="setRatingFromSettings(${i},'meh')" style="background:${r==='meh'?'#fffbe6':'var(--surface)'};border:1px solid ${r==='meh'?'#e8c840':'var(--bdr)'};border-radius:8px;padding:4px 8px;font-size:14px;cursor:pointer;">😐</button>
+        <button onclick="setRatingFromSettings(${i},'skip')" style="background:${r==='skip'?'#edf1ff':'var(--surface)'};border:1px solid ${r==='skip'?'#8899dd':'var(--bdr)'};border-radius:8px;padding:4px 8px;font-size:14px;cursor:pointer;">👎</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function setRatingFromSettings(i,rating){
+  if(!ST.plan.days[i])return;
+  ST.plan.days[i].rating=rating;
+  saveWeekData();
+  renderSettings();
+  renderPills();
+}
 function renderAll(){
   const activePlan=ST.histMode?ST.histPlan:ST.plan;
   document.getElementById('hdr-wk').textContent='Week ending '+(activePlan.weekEnding||activePlan.weekOf)+(ST.histMode?' 📅':'');
@@ -1241,6 +1284,7 @@ function renderAll(){
   document.getElementById('mob-day').innerHTML=buildCard(activePlan.days[ST.cur],ST.cur);
   document.getElementById('dsk-grid').innerHTML=activePlan.days.map((d,i)=>buildCard(d,i)).join('');
   if(ST.tab==='grocery')renderGrocery();
+  if(ST.tab==='settings')renderSettings();
 }
 
 // ── ACTIONS ───────────────────────────────────────────────
@@ -1358,7 +1402,11 @@ function calcNextWeek(){
   const d=new Date(parseInt(parts[2]||parts[3]),Object.values(months).indexOf((months[parts[0]]||'04'))-0,parseInt(parts[1]));
   d.setDate(d.getDate()+7);
   const dates=dnames.map((_,i)=>{const dd=new Date(d);dd.setDate(d.getDate()+i);return{day:dnames[i],date:mabbr[dd.getMonth()]+' '+dd.getDate()};});
-  return{weekOf:mnames[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear(),dates};
+  // Sunday is index 6 in dates array
+  const sundayDate=new Date(d);sundayDate.setDate(d.getDate()+6);
+  const weekEnding=mnames[sundayDate.getMonth()]+' '+sundayDate.getDate()+', '+sundayDate.getFullYear();
+  const weekOf=mnames[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();
+  return{weekOf,weekEnding,dates};
 }
 // buildClaudePrompt is async — pulls 4 weeks of Firestore dinner history
 async function buildClaudePrompt(){
@@ -1421,7 +1469,10 @@ async function buildClaudePrompt(){
     ? `\nFAMILY FAVORITES (loved-it rated — ok to bring back once they clear the 4-week window):\n${lovedDinners.join(', ')}`
     : '';
 
-  return `Please generate a new 7-day family meal plan for the week of ${next.weekOf}.
+  const generatedAt=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});return `Prompt generated: ${generatedAt}
+Requesting plan for week ending: ${next.weekEnding}
+
+Please generate a new 7-day family meal plan for the week of ${next.weekOf}.
 
 LAST WEEK'S DINNER RATINGS:
 ${ratings}
@@ -1453,7 +1504,7 @@ Example: "amounts":["½ cup rolled oats","1 scoop vanilla protein","1 banana","1
 Structure: {"weekOf":"${next.weekOf}","days":[{"day":"Monday","date":"${next.dates[0].date}","wife":{"breakfast":{"name":"","cal":0,"protein":0,"summary":"","amounts":[]},"lunch":{"name":"","cal":0,"protein":0,"summary":"","amounts":[]},"snack":{"name":"","cal":0,"protein":0,"summary":"","amounts":[]},"eveningSnack":{"name":"","cal":0,"protein":0,"summary":"","amounts":[]}},"philip":{"brunch":{"name":"","cal":0,"protein":0,"summary":"","amounts":[]},"snack":{"name":"","cal":0,"protein":0,"summary":"","amounts":[]},"sweet":{"name":"","cal":0,"protein":0,"summary":"","amounts":[]}},"dinner":{"name":"","wifeServing":{"cal":0,"protein":0},"philipServing":{"cal":0,"protein":0},"summary":"","time":"","flavorProfile":"","ingredients":[],"steps":[],"si":[],"substitutes":[{"name":"","flavorProfile":"","wifeServing":{"cal":0,"protein":0},"summary":"","ingredients":[],"steps":[],"si":[]},{"name":"","flavorProfile":"","wifeServing":{"cal":0,"protein":0},"summary":"","ingredients":[],"steps":[],"si":[]}]}},...]}`;
 }
 
-async function showSendModal(){
+async async function showSendModal(){
   // Show modal immediately with loading state
   document.getElementById('copy-confirm').style.display='none';
   document.getElementById('send-modal').style.display='flex';
