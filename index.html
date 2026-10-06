@@ -1350,15 +1350,31 @@ function renderUserAvatar(){
 
 // ── SEND MODAL ────────────────────────────────────────────
 function calcNextWeek(){
-  const months={January:'01',February:'02',March:'03',April:'04',May:'05',June:'06',July:'07',August:'08',September:'09',October:'10',November:'11',December:'12'};
+  // Always compute from TODAY so the prompt is never stale.
+  // Rule: next Monday = today if today is Monday, else the coming Monday.
+  // Week runs Monday (index 0) through Sunday (index 6). weekEnding = Monday + 6.
   const mnames=['January','February','March','April','May','June','July','August','September','October','November','December'];
   const mabbr=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const dnames=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-  const parts=ST.plan.weekOf.split(/[\s,]+/).filter(Boolean);
-  const d=new Date(parseInt(parts[2]||parts[3]),Object.values(months).indexOf((months[parts[0]]||'04'))-0,parseInt(parts[1]));
-  d.setDate(d.getDate()+7);
-  const dates=dnames.map((_,i)=>{const dd=new Date(d);dd.setDate(d.getDate()+i);return{day:dnames[i],date:mabbr[dd.getMonth()]+' '+dd.getDate()};});
-  const sundayDate=new Date(d);sundayDate.setDate(d.getDate()+6);const weekEnding=mnames[sundayDate.getMonth()]+' '+sundayDate.getDate()+', '+sundayDate.getFullYear();return{weekOf:mnames[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear(),weekEnding,dates};
+  const today=new Date();
+  today.setHours(0,0,0,0);
+  // JS day: 0=Sun,1=Mon...6=Sat. We want the coming Monday (or today if Monday).
+  const jsDay=today.getDay(); // 0=Sun,1=Mon,...
+  const daysUntilMon=(jsDay===1)?0:(jsDay===0)?1:(8-jsDay)%7||7;
+  const monday=new Date(today);
+  monday.setDate(today.getDate()+daysUntilMon);
+  // Sunday = Monday + 6
+  const sunday=new Date(monday);
+  sunday.setDate(monday.getDate()+6);
+  // Build day array Mon-Sun
+  const dates=dnames.map((_,i)=>{
+    const dd=new Date(monday);
+    dd.setDate(monday.getDate()+i);
+    return{day:dnames[i],date:mabbr[dd.getMonth()]+' '+dd.getDate()};
+  });
+  const weekOf=mnames[monday.getMonth()]+' '+monday.getDate()+', '+monday.getFullYear();
+  const weekEnding=mnames[sunday.getMonth()]+' '+sunday.getDate()+', '+sunday.getFullYear();
+  return{weekOf,weekEnding,dates};
 }
 // buildClaudePrompt is async — pulls 4 weeks of Firestore dinner history
 async function buildClaudePrompt(){
