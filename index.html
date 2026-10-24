@@ -382,6 +382,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="sec-hdr">
       <div><div class="sec-ttl">🛒 Grocery List</div><div class="sec-sub" id="g-sub"></div></div>
       <div class="g-acts">
+        <button class="ghost no-print" id="groc-notes-btn" onclick="toggleGrocNotes()"></button>
         <button class="ghost no-print" onclick="clearGroc()">Clear all</button>
         <button class="ghost no-print" onclick="window.print()">🖨 Print</button>
       </div>
@@ -495,38 +496,38 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 
 const STAPLES=[
   // PROTEINS — non-dinner uses only
-  {name:"chicken breast boneless",qty:2,unit:"lbs",cat:"proteins",note:"wife lunches & wraps all week"},
+  {name:"chicken breast boneless",qty:2,unit:"lbs",cat:"proteins",note:"wife lunches & wraps"},
   {name:"turkey deli slices",qty:12,unit:"oz",cat:"proteins",note:"wife & Philip lunches"},
-  {name:"turkey sausage links",qty:12,unit:"oz",cat:"proteins",note:"wife Mon breakfast + Philip Tue brunch"},
-  {name:"smoked salmon",qty:4,unit:"oz",cat:"proteins",note:"Philip Wed brunch"},
-  {name:"flank steak",qty:8,unit:"oz",cat:"proteins",note:"Philip Sat brunch burrito"},
-  {name:"albacore tuna",qty:2,unit:"cans",cat:"proteins",note:"wife Wed lunch"},
+  {name:"turkey sausage links",qty:12,unit:"oz",cat:"proteins",note:"wife breakfast + Philip brunch"},
+  {name:"smoked salmon",qty:4,unit:"oz",cat:"proteins",note:"Philip brunch"},
+  {name:"flank steak",qty:8,unit:"oz",cat:"proteins",note:"Philip brunch burrito"},
+  {name:"albacore tuna",qty:2,unit:"cans",cat:"proteins",note:"wife lunch"},
   // PRODUCE — non-dinner uses only
   {name:"apples",qty:4,unit:"each",cat:"produce",note:"wife snacks"},
   {name:"bananas",qty:7,unit:"each",cat:"produce",note:"Philip brunches & shakes"},
   {name:"mixed berries frozen",qty:2,unit:"bags",cat:"produce",note:"wife breakfasts & smoothies"},
-  {name:"grapes red",qty:1,unit:"lbs",cat:"produce",note:"wife Tue snack"},
-  {name:"romaine lettuce",qty:1,unit:"each",cat:"produce",note:"wife Mon lunch wrap"},
-  {name:"butter lettuce",qty:1,unit:"each",cat:"produce",note:"wife Fri lunch wraps"},
+  {name:"grapes red",qty:1,unit:"lbs",cat:"produce",note:"wife snack"},
+  {name:"romaine lettuce",qty:1,unit:"each",cat:"produce",note:"wife lunch wrap"},
+  {name:"butter lettuce",qty:1,unit:"each",cat:"produce",note:"wife lunch wraps"},
   {name:"baby spinach",qty:10,unit:"oz",cat:"produce",note:"wife smoothies + Philip brunches"},
-  {name:"celery",qty:1,unit:"bunch",cat:"produce",note:"wife Thu snack"},
-  {name:"baby carrots",qty:1,unit:"bag",cat:"produce",note:"wife Sat snack"},
-  {name:"sweet potatoes",qty:2,unit:"each",cat:"produce",note:"Philip Thu brunch hash"},
-  {name:"avocados",qty:3,unit:"each",cat:"produce",note:"wife breakfasts & lunches (non-dinner)"},
+  {name:"celery",qty:1,unit:"bunch",cat:"produce",note:"wife snack"},
+  {name:"baby carrots",qty:1,unit:"bag",cat:"produce",note:"wife snack"},
+  {name:"sweet potatoes",qty:2,unit:"each",cat:"produce",note:"Philip brunch hash"},
+  {name:"avocados",qty:3,unit:"each",cat:"produce",note:"wife breakfasts & lunches"},
   {name:"lemons",qty:2,unit:"each",cat:"produce",note:"wife lunches"},
-  {name:"cherry tomatoes",qty:0.5,unit:"pint",cat:"produce",note:"wife Fri snack"},
-  {name:"seasonal fruit",qty:1,unit:"bag",cat:"produce",note:"wife Sun breakfast"},
-  {name:"bell peppers",qty:4,unit:"each",cat:"produce",note:"Philip brunches Thu/Fri/Sat"},
+  {name:"cherry tomatoes",qty:0.5,unit:"pint",cat:"produce",note:"wife snack"},
+  {name:"seasonal fruit",qty:1,unit:"bag",cat:"produce",note:"wife breakfast"},
+  {name:"bell peppers",qty:4,unit:"each",cat:"produce",note:"Philip brunches"},
   {name:"red onion",qty:1,unit:"each",cat:"produce",note:"wife tuna salad"},
   // GRAINS — non-dinner only
   {name:"Ezekiel bread",qty:1,unit:"loaf",cat:"grains"},
-  {name:"rolled oats",qty:16,unit:"oz",cat:"grains",note:"wife Thu breakfast"},
-  {name:"granola",qty:1,unit:"bag",cat:"grains",note:"wife Mon parfait"},
-  {name:"quinoa",qty:1,unit:"cup",cat:"grains",note:"wife Thu lunch bowl"},
+  {name:"rolled oats",qty:16,unit:"oz",cat:"grains",note:"wife breakfast"},
+  {name:"granola",qty:1,unit:"bag",cat:"grains",note:"wife breakfast parfait"},
+  {name:"quinoa",qty:1,unit:"cup",cat:"grains",note:"wife lunch bowl"},
   {name:"whole wheat tortillas large",qty:6,unit:"each",cat:"grains",note:"Philip brunches + wife lunches"},
-  {name:"rice cakes plain",qty:1,unit:"bag",cat:"grains",note:"Philip Sun sweet"},
-  {name:"protein pancake mix",qty:1,unit:"box",cat:"grains",note:"Philip Tue brunch"},
-  {name:"whole wheat bread",qty:1,unit:"loaf",cat:"grains",note:"wife Sat panini"},
+  {name:"rice cakes plain",qty:1,unit:"bag",cat:"grains",note:"Philip sweet"},
+  {name:"protein pancake mix",qty:1,unit:"box",cat:"grains",note:"Philip brunch"},
+  {name:"whole wheat bread",qty:1,unit:"loaf",cat:"grains",note:"wife panini"},
   // DAIRY — eggs include all non-dinner uses; dinner eggs are added via si[] and will combine here
   {name:"Greek yogurt plain",qty:32,unit:"oz",cat:"dairy"},
   {name:"Siggi's vanilla skyr",qty:4,unit:"each",cat:"dairy"},
@@ -692,6 +693,7 @@ let ST={
   favs:[], favMap:{}, pantryItems:new Set(), gc:{}, portionScale:1.0,
   // UI
   showPhilip:(localStorage.getItem('ot-philip')||'1')==='1', cur:0, openRec:{}, openSw:{}, tab:'week',
+  showGrocNotes:(localStorage.getItem('ot-groc-notes')||'1')==='1',
 };
 
 // ── UTILS ─────────────────────────────────────────────────
@@ -1008,6 +1010,76 @@ function setPortionScale(val){
 }
 
 // ── GROCERY ───────────────────────────────────────────────
+function toggleGrocNotes(){
+  ST.showGrocNotes=!ST.showGrocNotes;
+  try{localStorage.setItem('ot-groc-notes',ST.showGrocNotes?'1':'0');}catch(e){}
+  renderGrocery();
+}
+
+// Build a map of normKey(ingredientName) -> "wife Mon breakfast · Philip Wed brunch" etc.
+// by scanning every meal's amounts[] text for ingredient name matches
+function buildMealNotes(activePlan){
+  const DAY_ABBR=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const WIFE_SLOTS=[
+    {key:'breakfast',label:'wife',who:'wife'},
+    {key:'lunch',label:'wife',who:'wife'},
+    {key:'snack',label:'wife snack',who:'wife'},
+    {key:'eveningSnack',label:'wife eve snack',who:'wife'},
+  ];
+  const PHIL_SLOTS=[
+    {key:'brunch',label:'Philip',who:'philip'},
+    {key:'snack',label:'Philip snack',who:'philip'},
+    {key:'sweet',label:'Philip sweet',who:'philip'},
+  ];
+  // slot label helpers
+  const slotLabel={
+    breakfast:'breakfast',lunch:'lunch',snack:'snack',eveningSnack:'eve snack',
+    brunch:'brunch',sweet:'sweet',
+  };
+  const noteMap=new Map(); // normKey -> Set of "who Day slot"
+  (activePlan.days||[]).forEach((day,i)=>{
+    const abbr=DAY_ABBR[i]||day.day?.slice(0,3)||'';
+    [...WIFE_SLOTS,...PHIL_SLOTS].forEach(slot=>{
+      const meal=(slot.who==='wife'?day.wife:day.philip)?.[slot.key];
+      if(!meal)return;
+      const amounts=meal.amounts||[];
+      amounts.forEach(amt=>{
+        const lower=amt.toLowerCase();
+        // check each staple ingredient name against the amounts text
+        STAPLES.forEach(s=>{
+          const k=normKey(s.name);
+          // match if the staple name words appear in the amount string
+          const words=s.name.toLowerCase().split(/\s+/).filter(w=>w.length>2);
+          if(words.length&&words.every(w=>lower.includes(w))){
+            if(!noteMap.has(k))noteMap.set(k,new Set());
+            const tag=slot.who==='wife'?`wife ${abbr} ${slotLabel[slot.key]}`:`Philip ${abbr} ${slotLabel[slot.key]}`;
+            noteMap.get(k).add(tag);
+          }
+        });
+      });
+    });
+    // Also scan dinner ingredients text for any staple overlaps
+    const din=day.dinner;
+    if(din){
+      (din.ingredients||[]).forEach(ing=>{
+        const lower=(ing.name||ing||'').toLowerCase();
+        STAPLES.forEach(s=>{
+          const k=normKey(s.name);
+          const words=s.name.toLowerCase().split(/\s+/).filter(w=>w.length>2);
+          if(words.length&&words.every(w=>lower.includes(w))){
+            if(!noteMap.has(k))noteMap.set(k,new Set());
+            noteMap.get(k).add(`${abbr} dinner`);
+          }
+        });
+      });
+    }
+  });
+  // Convert sets to compact strings
+  const result=new Map();
+  noteMap.forEach((set,k)=>{result.set(k,Array.from(set).join(' · '));});
+  return result;
+}
+
 function buildGroceryList(){
   const scale=ST.portionScale;
   const activePlan=ST.histMode?ST.histPlan:ST.plan;
@@ -1055,6 +1127,9 @@ function renderGrocery(){
   const activePlan=ST.histMode?ST.histPlan:ST.plan;
   const scaleLabel=ST.portionScale!==1.0?` · ${ST.portionScale}x portions`:'';
   document.getElementById('g-sub').textContent=`${chk} of ${total} items · Week of ${activePlan.weekOf}${scaleLabel}`;
+  // Update notes toggle button label
+  const noteBtn=document.getElementById('groc-notes-btn');
+  if(noteBtn)noteBtn.textContent=ST.showGrocNotes?'Hide notes':'Show notes';
   // Dinner summary — shows which dinner is selected for each day so T'naiha can verify the list matches
   const summaryEl=document.getElementById('g-dinner-summary');
   if(summaryEl){
@@ -1071,6 +1146,8 @@ function renderGrocery(){
     });
     summaryEl.innerHTML=shtml;
   }
+  // Build dynamic meal notes from active plan
+  const mealNotes=buildMealNotes(activePlan);
   const bar=document.getElementById('g-bar');
   if(bar)bar.style.width=(total?Math.round(chk/total*100):0)+'%';
   let html='';
@@ -1082,12 +1159,14 @@ function renderGrocery(){
       const key=normKey(item.name)+'_'+cat;
       const done=!!ST.gc[key];
       const inPantry=ST.pantryItems.has(normKey(item.name));
-      const gcState=done||(inPantry&&ST.gc[key]===undefined)?true:done;
       // Auto-check pantry items that haven't been explicitly unchecked
       const isChecked=done||(inPantry&&ST.gc[key]===undefined);
       const refHtml=item.ref?`<span class="g-ref"> · ${esc(item.ref)}</span>`:'';
-      const noteHtml=item.note?`<span class="g-note">${esc(item.note)}</span>`:'';
-      const pantryHtml=inPantry&&!item.note?`<span class="g-pantry-badge">pantry</span>`:'';
+      // Dynamic note: prefer plan-derived note, fall back to staple's built-in note
+      const dynNote=mealNotes.get(normKey(item.name))||'';
+      const displayNote=ST.showGrocNotes?(dynNote||item.note||''):'';
+      const pantryHtml=inPantry&&!displayNote?`<span class="g-pantry-badge">pantry</span>`:'';
+      const noteHtml=displayNote?`<span class="g-note">${esc(displayNote)}</span>`:'';
       html+=`<div class="grow">
         <input type="checkbox" class="gcb" ${isChecked?'checked':''} data-key="${esc(key)}" onchange="toggleGroc(this)">
         <div class="g-label">
