@@ -393,7 +393,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 
   <div class="view" id="view-favorites">
-    <div class="sec-hdr"><div><div class="sec-ttl">⭐ Saved Favorites</div><div class="sec-sub">Dinners you've loved — saved for future weeks</div></div></div>
+    <div class="sec-hdr">
+      <div><div class="sec-ttl">⭐ Saved Favorites</div><div class="sec-sub">Dinners you've loved — saved for future weeks</div></div>
+      <button class="ghost" onclick="rebuildFavoritesFromHistory()" title="Scan history for loved-it rated dinners and restore them">↩ Restore from history</button>
+    </div>
     <div id="fav-body"></div>
   </div>
 
@@ -963,6 +966,52 @@ async function saveWeekData(){
       updatedAt:firebase.firestore.FieldValue.serverTimestamp()
     });
   } catch(e){console.error('saveWeekData error:',e);}
+  // Sync swapped plan back to household history so history reflects actual meals
+  const hasSwaps=swappedDinners.some(Boolean);
+  if(hasSwaps){
+    try{
+      await db.collection('households').doc(ST.household.id).collection('plans').doc(ST.weekSlug).update({
+        plan:JSON.parse(JSON.stringify(ST.plan)),
+        lastSwappedAt:firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch(e){console.warn('Could not sync swaps to history:',e.message);}
+  }
+}
+
+// Rebuild favorites from history — fetches weekData ratings for every past week
+// then adds any loved-it dinners that aren't already in favs
+async function rebuildFavoritesFromHistory(){
+  const seen=new Set(ST.favs.map(f=>f.name));
+  const added=[];
+  for(const hw of (ST.histList||[])){
+    let ratings=[];
+    try{
+      const wd=await db.collection('users').doc(ST.user.uid).collection('weekData').doc(hw.slug).get();
+      if(wd.exists) ratings=wd.data().ratings||[];
+    }catch(e){}
+    (hw.plan?.days||[]).forEach((d,i)=>{
+      const r=(ratings[i]||{}).rating||d.rating||'';
+      if(r==='loved'&&d.dinner&&!seen.has(d.dinner.name)){
+        seen.add(d.dinner.name);
+        ST.favs.push({
+          name:d.dinner.name,
+          summary:d.dinner.summary||'',
+          flavorProfile:d.dinner.flavorProfile||'',
+          wifeServing:JSON.parse(JSON.stringify(d.dinner.wifeServing||{})),
+          philipServing:JSON.parse(JSON.stringify(d.dinner.philipServing||{}))
+        });
+        added.push(d.dinner.name);
+      }
+    });
+  }
+  if(added.length){
+    ST.favMap=Object.fromEntries(ST.favs.map(f=>[f.name,true]));
+    try{await db.collection('users').doc(ST.user.uid).update({favorites:ST.favs});}catch(e){}
+    updateFavBadge();renderFavorites();
+    alert(`✅ Restored ${added.length} favorite(s) from history:\n${added.join('\n')}`);
+  } else {
+    alert('No new loved-it dinners found in history. Make sure dinners were rated "Loved it ❤️" in past weeks.');
+  }
 }
 
 async function loadHistoryList(){
@@ -1036,31 +1085,18 @@ function buildMealNotes(activePlan){
     breakfast:'breakfast',lunch:'lunch',snack:'snack',eveningSnack:'eve snack',
     brunch:'brunch',sweet:'sweet',
   };
-  const noteMap=new Map(); // normKey -> Set of "who Day slot"
+  const noteMap=new Map(); // normKey -> Set of usage tags
   (activePlan.days||[]).forEach((day,i)=>{
     const abbr=DAY_ABBR[i]||day.day?.slice(0,3)||'';
-    [...WIFE_SLOTS,...PHIL_SLOTS].forEach(slot=>{
-      const meal=(slot.who==='wife'?day.wife:day.philip)?.[slot.key];
-      if(!meal)return;
-      const amounts=meal.amounts||[];
-      amounts.forEach(amt=>{
-        const lower=amt.toLowerCase();
-        // check each staple ingredient name against the amounts text
-        STAPLES.forEach(s=>{
-          const k=normKey(s.name);
-          // match if the staple name words appear in the amount string
-          const words=s.name.toLowerCase().split(/\s+/).filter(w=>w.length>2);
-          if(words.length&&words.every(w=>lower.includes(w))){
-            if(!noteMap.has(k))noteMap.set(k,new Set());
-            const tag=slot.who==='wife'?`wife ${abbr} ${slotLabel[slot.key]}`:`Philip ${abbr} ${slotLabel[slot.key]}`;
-            noteMap.get(k).add(tag);
-          }
-        });
-      });
-    });
-    // Also scan dinner ingredients text for any staple overlaps
+    // ── Dinner si[] items: tag with day + dinner name ──────────────
     const din=day.dinner;
     if(din){
+      (din.si||[]).forEach(si=>{
+        const k=normKey(si.name);
+        if(!noteMap.has(k))noteMap.set(k,new Set());
+        noteMap.get(k).add(`${abbr} dinner`);
+      });
+      // Also check dinner ingredients[] for any staple overlaps
       (din.ingredients||[]).forEach(ing=>{
         const lower=(ing.name||ing||'').toLowerCase();
         STAPLES.forEach(s=>{
@@ -1073,6 +1109,24 @@ function buildMealNotes(activePlan){
         });
       });
     }
+    // ── Non-dinner meals: match staple names against amounts[] text ──
+    [...WIFE_SLOTS,...PHIL_SLOTS].forEach(slot=>{
+      const meal=(slot.who==='wife'?day.wife:day.philip)?.[slot.key];
+      if(!meal)return;
+      const amounts=meal.amounts||[];
+      amounts.forEach(amt=>{
+        const lower=amt.toLowerCase();
+        STAPLES.forEach(s=>{
+          const k=normKey(s.name);
+          const words=s.name.toLowerCase().split(/\s+/).filter(w=>w.length>2);
+          if(words.length&&words.every(w=>lower.includes(w))){
+            if(!noteMap.has(k))noteMap.set(k,new Set());
+            const tag=slot.who==='wife'?`wife ${abbr} ${slotLabel[slot.key]}`:`Philip ${abbr} ${slotLabel[slot.key]}`;
+            noteMap.get(k).add(tag);
+          }
+        });
+      });
+    });
   });
   // Convert sets to compact strings
   const result=new Map();
